@@ -92,6 +92,38 @@ care about. `system=` and `tools=` are overridable so you can mirror your real
 agent's persona and toolbox instead of the defaults. See
 [`examples/anthropic_scan.py`](examples/anthropic_scan.py).
 
+## Close the loop: harden the shield
+
+The sword's whole point is to make the shield better. `harden` turns landed
+findings into defenses [agentbastion](https://github.com/Rinkia/agentbastion)
+loads directly:
+
+```bash
+bastionprobe run --target examples.my_agent:agent --out results.jsonl
+bastionprobe harden results.jsonl        # -> bastion_hardening/{policy.yaml, injections.jsonl}
+```
+
+- **`policy.yaml`** — every tool an injection got to call, as a deny-list for
+  agentbastion's `ToolPolicy` (`load_policy`).
+- **`injections.jsonl`** — every injection string that worked, in agentbastion's
+  corpus schema. Load them as `SemanticDetector` templates and embedding
+  similarity blocks those attacks *and their paraphrases*.
+
+```python
+from agentbastion import Firewall, load_policy
+from agentbastion.semantic import SemanticDetector
+from agentbastion.inbound import InboundGuard
+import json
+
+templates = [json.loads(l)["text"] for l in open("bastion_hardening/injections.jsonl")]
+fw = Firewall()
+fw.tool_policy = load_policy("bastion_hardening/policy.yaml")   # deny what got called
+fw.inbound = InboundGuard(detectors=[SemanticDetector(embed_fn, templates=templates)])
+```
+
+Then re-scan: **scan → harden → load → re-scan**, and each round the shield
+learns exactly what the sword got through.
+
 ## The target contract
 
 A target is any callable `(messages, tool_outputs) -> AgentResponse`. bastionprobe

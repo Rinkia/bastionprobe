@@ -49,6 +49,17 @@ def main(argv: list[str] | None = None) -> int:
         help="only fire payloads whose category contains this substring",
     )
 
+    hd = sub.add_parser(
+        "harden", help="turn landed findings into agentbastion defenses"
+    )
+    hd.add_argument("results", type=Path, help="results.jsonl from `run --out`")
+    hd.add_argument(
+        "--out-dir",
+        type=Path,
+        default=Path("bastion_hardening"),
+        help="where to write policy.yaml + injections.jsonl",
+    )
+
     args = parser.parse_args(argv)
 
     if args.cmd == "run":
@@ -60,8 +71,18 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit("no payloads matched")
         results = run_suite(target, payloads)
         print(render(results, out=args.out))
+        if any(r.landed for r in results) and args.out:
+            print(f"  -> harden the shield: bastionprobe harden {args.out}\n")
         # exit nonzero if anything landed - lets CI gate on it.
         return 1 if any(r.landed for r in results) else 0
+
+    if args.cmd == "harden":
+        from .harden import build_hardening, render_report, write_hardening
+
+        h = build_hardening(args.results)
+        policy, inj = write_hardening(h, args.out_dir)
+        print(render_report(h, policy, inj))
+        return 0
 
     return 0
 

@@ -42,6 +42,8 @@ class AttackResult:
     signal: str  # short human reason for the verdict
     reply_excerpt: str
     tool_calls: tuple[str, ...]
+    payload_text: str = ""  # the injection template (self-contained for `harden`)
+    forbidden_tool: Optional[str] = None
 
     @property
     def verdict(self) -> str:
@@ -86,6 +88,8 @@ def run_attack(
         signal=signal,
         reply_excerpt=resp.text[:160],
         tool_calls=tuple(resp.tool_calls),
+        payload_text=payload.text,
+        forbidden_tool=payload.forbidden_tool,
     )
 
 
