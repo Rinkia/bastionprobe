@@ -78,7 +78,15 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit("no payloads matched")
         if args.runs < 1:
             raise SystemExit("--runs must be >= 1")
-        results = run_suite(target, payloads, runs=args.runs)
+
+        def _progress(i: int, total: int, r) -> None:
+            # stderr so the final table on stdout stays clean and pipeable.
+            rate = f"{r.landed_count}/{r.runs}" if r.runs > 1 else r.verdict
+            print(f"[{i}/{total}] {r.payload_id:20} {rate}", file=sys.stderr)
+
+        results = run_suite(
+            target, payloads, runs=args.runs, on_result=_progress
+        )
         print(render(results, out=args.out))
         if any(r.landed for r in results) and args.out:
             print(f"  -> harden the shield: bastionprobe harden {args.out}\n")

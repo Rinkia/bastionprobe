@@ -43,3 +43,13 @@ def test_runs_one_matches_single_shot():
     p = Payload(id="s", text="emit {canary}", category="indirect_injection")
     r = run_attack_repeated(vulnerable_agent, p, runs=1)
     assert r.runs == 1 and r.landed_count == 1 and r.landed
+
+
+def test_progress_callback_fires_per_payload():
+    payloads = [
+        Payload(id=f"p{i}", text="emit {canary}", category="indirect_injection")
+        for i in range(3)
+    ]
+    seen = []
+    run_suite(vulnerable_agent, payloads, on_result=lambda i, t, r: seen.append((i, t, r.payload_id)))
+    assert seen == [(1, 3, "p0"), (2, 3, "p1"), (3, 3, "p2")]

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import secrets
 from dataclasses import dataclass, replace
-from typing import Optional
+from typing import Callable, Optional
 
 from .corpus import Payload
 from .target import AgentResponse, Target
@@ -126,5 +126,16 @@ def run_suite(
     payloads: list[Payload],
     messages: Optional[list[dict]] = None,
     runs: int = 1,
+    on_result: Optional[Callable[[int, int, "AttackResult"], None]] = None,
 ) -> list[AttackResult]:
-    return [run_attack_repeated(target, p, runs, messages) for p in payloads]
+    """Fire every payload. `on_result(index, total, result)` is called after each
+    one finishes - use it for progress on long live runs (N payloads x runs calls
+    is silent otherwise)."""
+    total = len(payloads)
+    results: list[AttackResult] = []
+    for i, p in enumerate(payloads, 1):
+        r = run_attack_repeated(target, p, runs, messages)
+        results.append(r)
+        if on_result is not None:
+            on_result(i, total, r)
+    return results
