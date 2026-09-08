@@ -1,4 +1,4 @@
-"""agentprobe - the offensive twin of agentbastion.
+"""bastionprobe - the offensive twin of agentbastion.
 
 Fire indirect prompt-injection payloads at an AI agent and report which land.
 Every payload that gets through is a hole a runtime guard should close.

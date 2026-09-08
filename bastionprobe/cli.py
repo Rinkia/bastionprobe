@@ -1,8 +1,8 @@
-"""agentprobe CLI.
+"""bastionprobe CLI.
 
-    agentprobe run                      # fire at the bundled demo target
-    agentprobe run --target mod:func    # fire at your agent
-    agentprobe run --out results.jsonl  # also save every result
+    bastionprobe run                      # fire at the bundled demo target
+    bastionprobe run --target mod:func    # fire at your agent
+    bastionprobe run --out results.jsonl  # also save every result
 
 --target is "module:function" (import path). The function must match the
 Target contract in target.py: (messages, tool_outputs) -> AgentResponse.
@@ -33,13 +33,13 @@ def _load_target(spec: str) -> Target:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="agentprobe")
+    parser = argparse.ArgumentParser(prog="bastionprobe")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     run = sub.add_parser("run", help="fire indirect-injection payloads at a target")
     run.add_argument(
         "--target",
-        default="agentprobe.demo:vulnerable_agent",
+        default="bastionprobe.demo:vulnerable_agent",
         help="module:function of the agent under test (default: bundled demo)",
     )
     run.add_argument("--out", type=Path, default=None, help="write results as JSONL")

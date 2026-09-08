@@ -2,8 +2,8 @@
 vulnerable agent on every payload and clear a safe agent on every payload. If
 either direction breaks, the whole tool is lying about results."""
 
-from agentprobe import load_payloads, run_suite
-from agentprobe.demo import safe_agent, vulnerable_agent
+from bastionprobe import load_payloads, run_suite
+from bastionprobe.demo import safe_agent, vulnerable_agent
 
 
 def test_vulnerable_agent_fails_every_payload():

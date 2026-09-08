@@ -1,4 +1,4 @@
-"""Two toy agents so `agentprobe run` works with zero setup and the loop has a
+"""Two toy agents so `bastionprobe run` works with zero setup and the loop has a
 runnable check: a vulnerable one (obeys instructions found in tool output) and a
 safe one (treats tool output as data). Real targets live in your own module.
 """

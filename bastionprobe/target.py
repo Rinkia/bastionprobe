@@ -1,7 +1,7 @@
 """The agent-under-test contract.
 
 A Target is any callable that runs the victim agent for one turn and reports
-back what it did. agentprobe plants a payload in one tool output, hands the
+back what it did. bastionprobe plants a payload in one tool output, hands the
 whole thing to the Target, and reads the AgentResponse to decide whether the
 injection landed.
 
@@ -25,5 +25,5 @@ class AgentResponse:
 
 
 # messages: the conversation so far (OpenAI/Anthropic-style role dicts).
-# tool_outputs: {tool_name: output_string}. agentprobe poisons one value.
+# tool_outputs: {tool_name: output_string}. bastionprobe poisons one value.
 Target = Callable[[list[dict], Mapping[str, str]], AgentResponse]

@@ -1,16 +1,16 @@
-# agentprobe
+# bastionprobe
 
 **Pentest for AI agents.** Fire indirect prompt-injection payloads at your agent
 and get a report of which ones land. Every payload that gets through is a hole a
 runtime guard should close.
 
 The offensive twin of [agentbastion](https://github.com/Rinkia/agentbastion)
-(the runtime firewall). agentbastion *blocks* attacks in production; agentprobe
-*launches* them before you ship. Scan with agentprobe → find holes → plug them
+(the runtime firewall). agentbastion *blocks* attacks in production; bastionprobe
+*launches* them before you ship. Scan with bastionprobe → find holes → plug them
 with agentbastion → re-scan → green.
 
 ```
-agentprobe = Burp Suite for agents      (red team, pre-ship, on demand)
+bastionprobe = Burp Suite for agents      (red team, pre-ship, on demand)
 agentbastion = WAF for agents           (blue team, production, always on)
 ```
 
@@ -21,7 +21,7 @@ payload doesn't come from the user — it rides inside a **tool result** the age
 reads mid-task (a fetched web page, a support ticket, a DB row, a file). If the
 agent treats that data as instructions, you're owned.
 
-agentprobe plants a payload in a tool output, runs your agent for one turn, and
+bastionprobe plants a payload in a tool output, runs your agent for one turn, and
 scores whether it obeyed:
 
 - **canary check** — the payload tells the agent to emit a unique random token.
@@ -33,7 +33,7 @@ scores whether it obeyed:
 ## Install
 
 ```bash
-pip install agentprobe   # (not yet published — clone + pip install -e . for now)
+pip install bastionprobe
 ```
 
 ## Quick start
@@ -41,15 +41,15 @@ pip install agentprobe   # (not yet published — clone + pip install -e . for n
 Zero setup — fire at the bundled demo targets:
 
 ```bash
-agentprobe run                                      # vulnerable demo: 12/12 land
-agentprobe run --target agentprobe.demo:safe_agent  # safe demo: 0 land
+bastionprobe run                                      # vulnerable demo: 12/12 land
+bastionprobe run --target bastionprobe.demo:safe_agent  # safe demo: 0 land
 ```
 
 Fire at *your* agent — implement one function (see
 [`examples/my_agent.py`](examples/my_agent.py)):
 
 ```python
-from agentprobe import AgentResponse
+from bastionprobe import AgentResponse
 
 def agent(messages, tool_outputs):        # tool_outputs = {tool_name: output}
     reply, tools_called = run_your_agent(messages, tool_outputs)
@@ -57,18 +57,18 @@ def agent(messages, tool_outputs):        # tool_outputs = {tool_name: output}
 ```
 
 ```bash
-agentprobe run --target examples.my_agent:agent --out results.jsonl
+bastionprobe run --target examples.my_agent:agent --out results.jsonl
 ```
 
 Exit code is non-zero when any payload lands, so you can gate CI on it:
 
 ```bash
-agentprobe run --target examples.my_agent:agent || echo "agent is vulnerable"
+bastionprobe run --target examples.my_agent:agent || echo "agent is vulnerable"
 ```
 
 ## The target contract
 
-A target is any callable `(messages, tool_outputs) -> AgentResponse`. agentprobe
+A target is any callable `(messages, tool_outputs) -> AgentResponse`. bastionprobe
 poisons one value in `tool_outputs`, runs your agent for one turn, and reads
 back the reply text plus the names of any tools it called. It never looks inside
 the agent — it measures behavior. Report what your agent *actually* did.
@@ -78,7 +78,7 @@ the agent — it measures behavior. Report what your agent *actually* did.
 Payloads use the same `category` taxonomy as agentbastion's
 `benchmark/corpus.jsonl` (`indirect_injection`, `exfiltration`,
 `direct_injection`, …). Same strings, opposite direction: agentbastion reads a
-row as "block this", agentprobe reads it as "fire this". A finding here maps
+row as "block this", bastionprobe reads it as "fire this". A finding here maps
 directly to a rule there.
 
 ## Status

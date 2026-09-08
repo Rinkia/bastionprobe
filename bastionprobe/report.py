@@ -21,7 +21,7 @@ def summary(results: list[AttackResult]) -> str:
     landed = sum(1 for r in results if r.landed)
     lines = [
         "",
-        f"agentprobe: {total} attacks fired  |  "
+        f"bastionprobe: {total} attacks fired  |  "
         f"{landed} landed (VULNERABLE)  |  {total - landed} blocked",
         "-" * 68,
     ]

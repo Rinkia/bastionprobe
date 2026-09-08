@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agentprobe"
+name = "bastionprobe"
 version = "0.1.0"
 description = "Pentest for AI agents: fire indirect prompt-injection payloads at your agent and report which land. Offensive twin of agentbastion."
 readme = "README.md"
@@ -24,15 +24,15 @@ dependencies = []
 dev = ["pytest>=7.0"]
 
 [project.scripts]
-agentprobe = "agentprobe.cli:main"
+bastionprobe = "bastionprobe.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Rinkia/agentprobe"
-Repository = "https://github.com/Rinkia/agentprobe"
-Issues = "https://github.com/Rinkia/agentprobe/issues"
+Homepage = "https://github.com/Rinkia/bastionprobe"
+Repository = "https://github.com/Rinkia/bastionprobe"
+Issues = "https://github.com/Rinkia/bastionprobe/issues"
 
 [tool.setuptools]
-packages = ["agentprobe"]
+packages = ["bastionprobe"]
 
 [tool.setuptools.package-data]
-agentprobe = ["payloads.jsonl"]
+bastionprobe = ["payloads.jsonl"]

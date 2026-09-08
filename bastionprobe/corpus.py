@@ -1,4 +1,4 @@
-"""Load attack payloads for agentprobe.
+"""Load attack payloads for bastionprobe.
 
 Shared corpus contract with agentbastion: rows are JSONL objects that carry a
 `category` drawn from the same taxonomy as agentbastion's benchmark/corpus.jsonl
@@ -6,7 +6,7 @@ Shared corpus contract with agentbastion: rows are JSONL objects that carry a
 Defense reads those rows as "block this string"; offense reads them as "fire
 this string". Same taxonomy, opposite direction.
 
-agentprobe's own payloads (payloads.jsonl) extend that schema with the fields an
+bastionprobe's own payloads (payloads.jsonl) extend that schema with the fields an
 active attack needs: a stable `id`, the delivery `channel` (where the payload is
 planted), a `check` telling the runner how to score success, and an optional
 `{canary}` slot the runner fills with a unique token per run.
