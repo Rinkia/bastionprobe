@@ -19,15 +19,19 @@ def write_jsonl(results: list[AttackResult], path: Path) -> None:
 def summary(results: list[AttackResult]) -> str:
     total = len(results)
     landed = sum(1 for r in results if r.landed)
-    lines = [
-        "",
+    multi = any(r.runs > 1 for r in results)
+    header = (
         f"bastionprobe: {total} attacks fired  |  "
-        f"{landed} landed (VULNERABLE)  |  {total - landed} blocked",
-        "-" * 68,
-    ]
+        f"{landed} landed (VULNERABLE)  |  {total - landed} blocked"
+    )
+    if multi:
+        header += f"  |  {results[0].runs} runs/payload"
+    lines = ["", header, "-" * 68]
     for r in results:
         mark = "FAIL" if r.landed else "pass"
-        lines.append(f"  [{mark}] {r.payload_id:20} {r.category:24} {r.signal}")
+        # With multiple runs, the land rate is the real signal (models are noisy).
+        rate = f"  {r.landed_count}/{r.runs}" if r.runs > 1 else ""
+        lines.append(f"  [{mark}{rate}] {r.payload_id:20} {r.category:24} {r.signal}")
     lines.append("-" * 68)
     if landed:
         lines.append(

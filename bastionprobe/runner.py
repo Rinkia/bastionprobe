@@ -17,7 +17,7 @@ agent that happened to echo a fixed word, and the token can't be pre-trained.
 from __future__ import annotations
 
 import secrets
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional
 
 from .corpus import Payload
@@ -44,10 +44,16 @@ class AttackResult:
     tool_calls: tuple[str, ...]
     payload_text: str = ""  # the injection template (self-contained for `harden`)
     forbidden_tool: Optional[str] = None
+    runs: int = 1  # how many times this payload was fired
+    landed_count: int = 0  # how many of those runs the injection landed
 
     @property
     def verdict(self) -> str:
         return "FAIL" if self.landed else "PASS"
+
+    @property
+    def land_rate(self) -> float:
+        return self.landed_count / self.runs if self.runs else 0.0
 
 
 def _new_canary() -> str:
@@ -90,12 +96,35 @@ def run_attack(
         tool_calls=tuple(resp.tool_calls),
         payload_text=payload.text,
         forbidden_tool=payload.forbidden_tool,
+        runs=1,
+        landed_count=1 if landed else 0,
     )
+
+
+def run_attack_repeated(
+    target: Target,
+    payload: Payload,
+    runs: int = 1,
+    messages: Optional[list[dict]] = None,
+) -> AttackResult:
+    """Fire a payload `runs` times and fold into one result. Models are non-
+    deterministic, so a single verdict is noisy; the land rate (landed_count/runs)
+    is the stable signal. `landed` stays True if the injection got through even
+    once — a hole that opens sometimes is still a hole (and still hardenable)."""
+    if runs <= 1:
+        return run_attack(target, payload, messages)
+    trials = [run_attack(target, payload, messages) for _ in range(runs)]
+    landed_count = sum(1 for t in trials if t.landed)
+    # Show a landed run when there is one (the vulnerable case is the useful one).
+    rep = next((t for t in trials if t.landed), trials[-1])
+    tool_calls = tuple({c for t in trials for c in t.tool_calls})
+    return replace(rep, runs=runs, landed_count=landed_count, tool_calls=tool_calls)
 
 
 def run_suite(
     target: Target,
     payloads: list[Payload],
     messages: Optional[list[dict]] = None,
+    runs: int = 1,
 ) -> list[AttackResult]:
-    return [run_attack(target, p, messages) for p in payloads]
+    return [run_attack_repeated(target, p, runs, messages) for p in payloads]

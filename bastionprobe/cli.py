@@ -48,6 +48,13 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="only fire payloads whose category contains this substring",
     )
+    run.add_argument(
+        "--runs",
+        type=int,
+        default=1,
+        help="fire each payload N times and report the land rate (models are "
+        "non-deterministic; N>1 is the stable signal)",
+    )
 
     hd = sub.add_parser(
         "harden", help="turn landed findings into agentbastion defenses"
@@ -69,7 +76,9 @@ def main(argv: list[str] | None = None) -> int:
             payloads = [p for p in payloads if args.category in p.category]
         if not payloads:
             raise SystemExit("no payloads matched")
-        results = run_suite(target, payloads)
+        if args.runs < 1:
+            raise SystemExit("--runs must be >= 1")
+        results = run_suite(target, payloads, runs=args.runs)
         print(render(results, out=args.out))
         if any(r.landed for r in results) and args.out:
             print(f"  -> harden the shield: bastionprobe harden {args.out}\n")

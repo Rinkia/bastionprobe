@@ -60,6 +60,16 @@ def agent(messages, tool_outputs):        # tool_outputs = {tool_name: output}
 bastionprobe run --target examples.my_agent:agent --out results.jsonl
 ```
 
+Models are non-deterministic — the same payload lands on one run and blocks on
+the next. Fire each payload N times for the stable land rate:
+
+```bash
+bastionprobe run --target examples.my_agent:agent --runs 5   # shows e.g. [FAIL 3/5]
+```
+
+`landed` still counts a payload that got through even once (a hole that opens
+sometimes is still a hole), but the `N/M` rate is what you compare between runs.
+
 Exit code is non-zero when any payload lands, so you can gate CI on it:
 
 ```bash
