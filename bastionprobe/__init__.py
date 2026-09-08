@@ -4,11 +4,12 @@ Fire indirect prompt-injection payloads at an AI agent and report which land.
 Every payload that gets through is a hole a runtime guard should close.
 """
 
+from .anthropic_target import make_anthropic_target
 from .corpus import Payload, load_payloads
 from .runner import AttackResult, run_attack, run_suite
 from .target import AgentResponse, Target
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "Payload",
@@ -18,5 +19,6 @@ __all__ = [
     "run_suite",
     "AgentResponse",
     "Target",
+    "make_anthropic_target",
     "__version__",
 ]

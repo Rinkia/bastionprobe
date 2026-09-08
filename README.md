@@ -66,6 +66,32 @@ Exit code is non-zero when any payload lands, so you can gate CI on it:
 bastionprobe run --target examples.my_agent:agent || echo "agent is vulnerable"
 ```
 
+## Fire at a real Claude agent
+
+A built-in adapter turns an Anthropic client into a target. It stands up a small
+tool-using agent, feeds each payload back as the result of the agent's
+`read_document` tool, runs one real model turn, and reports what Claude did —
+text plus any tools it tried to call.
+
+```bash
+pip install "bastionprobe[anthropic]"
+export ANTHROPIC_API_KEY=...
+```
+
+```python
+from anthropic import Anthropic
+from bastionprobe import load_payloads, run_suite, make_anthropic_target
+from bastionprobe.report import render
+
+target = make_anthropic_target(Anthropic(), model="claude-sonnet-4-5")
+print(render(run_suite(target, load_payloads())))
+```
+
+Set `model=` to the model your production agent runs — that's the behavior you
+care about. `system=` and `tools=` are overridable so you can mirror your real
+agent's persona and toolbox instead of the defaults. See
+[`examples/anthropic_scan.py`](examples/anthropic_scan.py).
+
 ## The target contract
 
 A target is any callable `(messages, tool_outputs) -> AgentResponse`. bastionprobe
