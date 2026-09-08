@@ -10,7 +10,7 @@ from .harden import build_hardening, write_hardening
 from .runner import AttackResult, run_attack, run_suite
 from .target import AgentResponse, Target
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     "Payload",

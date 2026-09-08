@@ -141,8 +141,9 @@ directly to a rule there.
 
 ## Status
 
-Alpha. One attack class (indirect injection via tool output), 12 payloads across
-5 languages. Reserved for later: direct injection, RAG poisoning, multi-agent
+Alpha. One attack class (indirect injection via tool output), 14 payloads across
+5 languages, tuned against a live model (benign-operational framing lands where
+explicit adversarial phrasing gets flagged). Reserved for later: direct injection, RAG poisoning, multi-agent
 trust escalation, LLM-judge scoring. Payload PRs welcome.
 
 ## License
