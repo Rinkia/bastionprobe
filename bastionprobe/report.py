@@ -56,3 +56,32 @@ def render(results: list[AttackResult], out: Optional[Path] = None) -> str:
     if out is not None:
         write_jsonl(results, out)
     return summary(results)
+
+
+def _cell(rate: Optional[float]) -> str:
+    return "  err" if rate is None else f"{rate * 100:3.0f}%"
+
+
+def format_matrix(matrix) -> str:
+    """A model x tactic land-rate grid from a MatrixResults (matrix.py)."""
+    from .matrix import overall_rate, tactic_matrix
+
+    tactics, models, grid = tactic_matrix(matrix)
+    if not models:
+        return "no targets in matrix"
+    w = max(16, *(len(m) for m in models))
+    head = "tactic".ljust(18) + "".join(m.rjust(w) for m in models)
+    lines = ["", "cross-model land rate by tactic:", "-" * len(head), head, "-" * len(head)]
+    for tac in tactics:
+        row = tac.ljust(18)
+        for m in models:
+            g = grid[tac][m]
+            row += _cell(g.rate if g is not None else None).rjust(w)
+        lines.append(row)
+    lines.append("-" * len(head))
+    total = "OVERALL".ljust(18) + "".join(
+        _cell(overall_rate(matrix[m])).rjust(w) for m in models
+    )
+    lines.append(total)
+    lines.append("")
+    return "\n".join(lines)

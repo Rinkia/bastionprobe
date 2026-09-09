@@ -15,6 +15,7 @@ import importlib
 import sys
 from pathlib import Path
 
+from .anthropic_target import make_anthropic_target
 from .corpus import load_payloads
 from .report import render
 from .runner import run_suite
@@ -56,6 +57,19 @@ def main(argv: list[str] | None = None) -> int:
         "non-deterministic; N>1 is the stable signal)",
     )
 
+    mx = sub.add_parser(
+        "matrix", help="fire the suite at several Anthropic models and compare"
+    )
+    mx.add_argument(
+        "--models",
+        default="claude-opus-4-5,claude-sonnet-4-5,claude-haiku-4-5",
+        help="comma-separated Anthropic model ids to compare",
+    )
+    mx.add_argument("--runs", type=int, default=3, help="runs per payload per model")
+    mx.add_argument(
+        "--category", default=None, help="only fire payloads whose category contains this"
+    )
+
     hd = sub.add_parser(
         "harden", help="turn landed findings into agentbastion defenses"
     )
@@ -92,6 +106,31 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  -> harden the shield: bastionprobe harden {args.out}\n")
         # exit nonzero if anything landed - lets CI gate on it.
         return 1 if any(r.landed for r in results) else 0
+
+    if args.cmd == "matrix":
+        if args.runs < 1:
+            raise SystemExit("--runs must be >= 1")
+        try:
+            from anthropic import Anthropic
+        except ImportError:
+            raise SystemExit('pip install "bastionprobe[anthropic]" for the matrix')
+        from .matrix import run_matrix
+        from .report import format_matrix
+
+        payloads = load_payloads()
+        if args.category:
+            payloads = [p for p in payloads if args.category in p.category]
+        models = [m.strip() for m in args.models.split(",") if m.strip()]
+        client = Anthropic()
+        targets = {m: make_anthropic_target(client, model=m) for m in models}
+
+        def _progress(model: str, i: int, total: int, r) -> None:
+            rate = f"{r.landed_count}/{r.runs}" if r.runs > 1 else r.verdict
+            print(f"[{model}] [{i}/{total}] {r.payload_id:20} {rate}", file=sys.stderr)
+
+        matrix = run_matrix(targets, payloads, runs=args.runs, on_result=_progress)
+        print(format_matrix(matrix))
+        return 0
 
     if args.cmd == "harden":
         from .harden import build_hardening, render_report, write_hardening

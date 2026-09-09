@@ -8,10 +8,11 @@ from .analyze import GroupRate, group_rates
 from .anthropic_target import make_anthropic_target
 from .corpus import Payload, load_payloads
 from .harden import build_hardening, write_hardening
+from .matrix import run_matrix, tactic_matrix
 from .runner import AttackResult, run_attack, run_suite
 from .target import AgentResponse, Target
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 __all__ = [
     "Payload",
@@ -26,5 +27,7 @@ __all__ = [
     "write_hardening",
     "group_rates",
     "GroupRate",
+    "run_matrix",
+    "tactic_matrix",
     "__version__",
 ]

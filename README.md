@@ -102,6 +102,30 @@ care about. `system=` and `tools=` are overridable so you can mirror your real
 agent's persona and toolbox instead of the defaults. See
 [`examples/anthropic_scan.py`](examples/anthropic_scan.py).
 
+## Cross-model matrix
+
+Fire the same suite at several models and compare land rate by tactic — turns a
+single-model result into a comparison:
+
+```bash
+bastionprobe matrix --models claude-opus-4-5,claude-sonnet-4-5,claude-haiku-4-5 --runs 5
+```
+
+```
+cross-model land rate by tactic:
+tactic              claude-opus-4-5  claude-sonnet-4-5  claude-haiku-4-5
+data-field                     ...%               90%              ...%
+destructive                    ...%              100%              ...%
+egress-overt                   ...%                0%              ...%
+egress-legit                   ...%                0%              ...%
+OVERALL                        ...%               69%              ...%
+```
+
+A bad model id shows `err` for its column — the rest of the matrix still runs.
+The matrix is model-agnostic: any callable of the target shape plugs in, so a
+non-Anthropic vendor joins the grid once it has an adapter. See
+[`examples/cross_model.py`](examples/cross_model.py).
+
 ## Close the loop: harden the shield
 
 The sword's whole point is to make the shield better. `harden` turns landed
