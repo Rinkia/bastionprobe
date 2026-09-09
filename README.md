@@ -102,6 +102,26 @@ care about. `system=` and `tools=` are overridable so you can mirror your real
 agent's persona and toolbox instead of the defaults. See
 [`examples/anthropic_scan.py`](examples/anthropic_scan.py).
 
+## Fire at a GPT agent
+
+Same contract, other vendor. `make_openai_target` wraps an OpenAI client and
+reuses the exact demo agent (system prompt + tools) as the Anthropic adapter, so
+a cross-vendor comparison measures the models, not two different harnesses.
+
+```bash
+pip install "bastionprobe[openai]"
+export OPENAI_API_KEY=...
+```
+
+```python
+from openai import OpenAI
+from bastionprobe import load_payloads, run_suite, make_openai_target
+from bastionprobe.report import render
+
+target = make_openai_target(OpenAI(), model="gpt-4o")
+print(render(run_suite(target, load_payloads(), runs=5)))
+```
+
 ## Cross-model matrix
 
 Fire the same suite at several models and compare land rate by tactic — turns a
@@ -122,9 +142,10 @@ OVERALL                        ...%               69%              ...%
 ```
 
 A bad model id shows `err` for its column — the rest of the matrix still runs.
-The matrix is model-agnostic: any callable of the target shape plugs in, so a
-non-Anthropic vendor joins the grid once it has an adapter. See
-[`examples/cross_model.py`](examples/cross_model.py).
+The matrix is vendor-agnostic: mix Anthropic and OpenAI targets in one grid to
+ask whether a finding holds across vendors (does the egress refusal survive on
+GPT?). See [`examples/cross_model.py`](examples/cross_model.py) (Anthropic) and
+[`examples/cross_vendor.py`](examples/cross_vendor.py) (Anthropic + OpenAI).
 
 ## Close the loop: harden the shield
 

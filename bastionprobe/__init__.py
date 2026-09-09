@@ -9,10 +9,11 @@ from .anthropic_target import make_anthropic_target
 from .corpus import Payload, load_payloads
 from .harden import build_hardening, write_hardening
 from .matrix import run_matrix, tactic_matrix
+from .openai_target import make_openai_target
 from .runner import AttackResult, run_attack, run_suite
 from .target import AgentResponse, Target
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 __all__ = [
     "Payload",
@@ -23,6 +24,7 @@ __all__ = [
     "AgentResponse",
     "Target",
     "make_anthropic_target",
+    "make_openai_target",
     "build_hardening",
     "write_hardening",
     "group_rates",
