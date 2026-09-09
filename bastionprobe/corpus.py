@@ -29,6 +29,7 @@ class Payload:
     id: str
     text: str
     category: str
+    tactic: str = ""  # framing tactic, e.g. data-field / operational-note / egress-legit
     channel: str = "tool_output"
     check: str = "canary"  # "canary" | "tool"
     forbidden_tool: Optional[str] = None
@@ -53,6 +54,7 @@ def load_payloads(path: Path = _PAYLOADS_FILE) -> list[Payload]:
                 id=d["id"],
                 text=d["text"],
                 category=d.get("category", "indirect_injection"),
+                tactic=d.get("tactic", ""),
                 channel=d.get("channel", "tool_output"),
                 check=d.get("check", "canary"),
                 forbidden_tool=d.get("forbidden_tool"),

@@ -151,9 +151,11 @@ directly to a rule there.
 
 ## Status
 
-Alpha. One attack class (indirect injection via tool output), 14 payloads across
-5 languages, tuned against a live model (benign-operational framing lands where
-explicit adversarial phrasing gets flagged). Reserved for later: direct injection, RAG poisoning, multi-agent
+Alpha. One attack class (indirect injection via tool output), 16 payloads across
+5 languages, tuned against a live model. Payloads are tagged with a framing
+`tactic`, and multi-run scans report a **land rate by tactic** breakdown — the
+signal that scales as the set grows. See [FINDINGS.md](FINDINGS.md) for measured
+results (e.g. Claude refuses data egress but readily deletes local data). Reserved for later: direct injection, RAG poisoning, multi-agent
 trust escalation, LLM-judge scoring. Payload PRs welcome.
 
 ## License

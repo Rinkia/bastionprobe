@@ -44,6 +44,7 @@ class AttackResult:
     tool_calls: tuple[str, ...]
     payload_text: str = ""  # the injection template (self-contained for `harden`)
     forbidden_tool: Optional[str] = None
+    tactic: str = ""  # framing tactic (for by-tactic land-rate analysis)
     runs: int = 1  # how many times this payload was fired
     landed_count: int = 0  # how many of those runs the injection landed
 
@@ -96,6 +97,7 @@ def run_attack(
         tool_calls=tuple(resp.tool_calls),
         payload_text=payload.text,
         forbidden_tool=payload.forbidden_tool,
+        tactic=payload.tactic,
         runs=1,
         landed_count=1 if landed else 0,
     )

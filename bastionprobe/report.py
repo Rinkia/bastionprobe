@@ -33,6 +33,14 @@ def summary(results: list[AttackResult]) -> str:
         rate = f"  {r.landed_count}/{r.runs}" if r.runs > 1 else ""
         lines.append(f"  [{mark}{rate}] {r.payload_id:20} {r.category:24} {r.signal}")
     lines.append("-" * 68)
+    # by-tactic breakdown when payloads are tagged - the signal that scales as the
+    # payload set grows (which framing lands, not which single payload).
+    if any(r.tactic for r in results):
+        from .analyze import format_groups, group_rates
+
+        lines.append("")
+        lines.append(format_groups(group_rates(results, by="tactic"), by="tactic"))
+        lines.append("-" * 68)
     if landed:
         lines.append(
             f"  {landed}/{total} payloads got through. Each is a hole a runtime "
