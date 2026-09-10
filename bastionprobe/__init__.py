@@ -11,9 +11,9 @@ from .harden import build_hardening, write_hardening
 from .matrix import run_matrix, tactic_matrix
 from .openai_target import make_openai_target
 from .runner import AttackResult, run_attack, run_suite
-from .target import AgentResponse, Target
+from .target import AgentResponse, Target, rate_limited
 
-__version__ = "0.8.1"
+__version__ = "0.8.2"
 
 __all__ = [
     "Payload",
@@ -23,6 +23,7 @@ __all__ = [
     "run_suite",
     "AgentResponse",
     "Target",
+    "rate_limited",
     "make_anthropic_target",
     "make_openai_target",
     "build_hardening",
