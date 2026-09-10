@@ -9,6 +9,13 @@ autonomous loop.
 
 from .archive import Archive, Elite
 from .axes import Cell, all_cells, cell_of
+from .benchmark import (
+    BenchmarkHistory,
+    BenchmarkScore,
+    evaluate,
+    frozen_contamination,
+    load_corpus,
+)
 from .director import Director, DirectorConfig, DirectorReport
 from .novelty import novelty_score
 
@@ -22,4 +29,9 @@ __all__ = [
     "Director",
     "DirectorConfig",
     "DirectorReport",
+    "BenchmarkScore",
+    "BenchmarkHistory",
+    "evaluate",
+    "load_corpus",
+    "frozen_contamination",
 ]

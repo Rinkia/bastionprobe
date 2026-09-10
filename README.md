@@ -174,7 +174,7 @@ from bastionprobe.demo import vulnerable_agent
 
 results = run_suite(vulnerable_agent, load_payloads(), runs=2)
 report = Director().round(results, benchmark_score=0.62)
-print(report.to_json())   # spec schema: classificazione, direzione_per_B, ...
+print(report.to_json())   # classification, direction_for_b, replay_for_a, ...
 ```
 
 ## Close the loop: harden the shield

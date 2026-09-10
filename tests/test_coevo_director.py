@@ -23,14 +23,14 @@ def test_report_schema_and_empty_targets():
     rep = d.round(results, benchmark_score=None)
     body = rep.to_dict()
     assert set(body) == {
-        "classificazione", "archivio_update", "direzione_per_B",
-        "mode_collapse", "replay_per_A", "diagnosi_progresso",
+        "classification", "archive_update", "direction_for_b",
+        "mode_collapse", "replay_for_a", "progress_diagnosis",
     }
-    assert len(body["classificazione"]) == 3
+    assert len(body["classification"]) == 3
     # every steered target cell is genuinely empty (not already filled)
     filled = d.archive.filled_keys()
-    assert all(k not in filled for k in body["direzione_per_B"]["celle_target"])
-    assert body["archivio_update"]["celle_aggiunte"]  # new cells added
+    assert all(k not in filled for k in body["direction_for_b"]["target_cells"])
+    assert body["archive_update"]["cells_added"]  # new cells added
 
 
 def test_mono_cell_batch_trips_mode_collapse():
@@ -38,8 +38,8 @@ def test_mono_cell_batch_trips_mode_collapse():
     # four attacks, all the SAME cell -> distinct/total = 0.25 < 0.5
     results = [mk(f"p{i}") for i in range(4)]
     rep = d.round(results)
-    assert rep.mode_collapse["rilevato"] is True
-    assert "Salto" in rep.mode_collapse["azione"] or "nessuna" not in rep.mode_collapse["azione"]
+    assert rep.mode_collapse["detected"] is True
+    assert rep.mode_collapse["action"] != "none"
 
 
 def test_diverse_batch_no_collapse():
@@ -50,7 +50,7 @@ def test_diverse_batch_no_collapse():
         mk("c", tactic="destructive", check="tool", forbidden_tool="delete_file"),
         mk("d", tactic="egress-overt", category="fr_indirect_injection", check="tool", forbidden_tool="http_post"),
     ]
-    assert d.round(results).mode_collapse["rilevato"] is False
+    assert d.round(results).mode_collapse["detected"] is False
 
 
 def test_flat_benchmark_declares_illusory_progress():
@@ -59,13 +59,13 @@ def test_flat_benchmark_declares_illusory_progress():
     rep = None
     for _ in range(4):  # stall_rounds + 1 rounds at the same benchmark
         rep = d.round(results, benchmark_score=0.700)
-    assert rep.diagnosi_progresso["progresso_reale"] is False
-    assert "illusorio" in rep.diagnosi_progresso["note"]
+    assert rep.progress_diagnosis["real_progress"] is False
+    assert "Illusory" in rep.progress_diagnosis["note"]
 
 
 def test_rising_benchmark_is_real_progress():
     d = Director()
     r1 = d.round([mk("a")], benchmark_score=0.60)
     r2 = d.round([mk("b", category="de_indirect_injection")], benchmark_score=0.72)
-    assert r2.diagnosi_progresso["benchmark_delta"] == 0.12
-    assert r2.diagnosi_progresso["progresso_reale"] is True
+    assert r2.progress_diagnosis["benchmark_delta"] == 0.12
+    assert r2.progress_diagnosis["real_progress"] is True

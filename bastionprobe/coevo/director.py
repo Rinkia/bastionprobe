@@ -8,7 +8,7 @@ Consumes a round of AttackResults (B's attacks fired at A) and decides, in order
   5. select a Hall-of-Fame replay set so A does not forget old holes
   6. diagnose real vs illusory progress on the frozen benchmark
 
-Emits the spec's structured JSON (Italian keys) for the harness.
+Emits a structured JSON report for the harness.
 """
 
 from __future__ import annotations
@@ -29,27 +29,27 @@ class DirectorConfig:
     collapse_novelty: float = 0.2  # mean novelty below this => collapse
     stall_rounds: int = 3          # benchmark flat this many rounds => illusory
     stall_eps: float = 0.01        # what counts as "flat"
-    success_rate: float = 0.6      # land rate at/above => "successo"
+    success_rate: float = 0.6      # land rate at/above => "success"
 
 
 @dataclass(frozen=True)
 class DirectorReport:
     round: int
-    classificazione: list
-    archivio_update: dict
-    direzione_per_B: dict
+    classification: list
+    archive_update: dict
+    direction_for_b: dict
     mode_collapse: dict
-    replay_per_A: list
-    diagnosi_progresso: dict
+    replay_for_a: list
+    progress_diagnosis: dict
 
     def to_dict(self) -> dict:
         return {
-            "classificazione": self.classificazione,
-            "archivio_update": self.archivio_update,
-            "direzione_per_B": self.direzione_per_B,
+            "classification": self.classification,
+            "archive_update": self.archive_update,
+            "direction_for_b": self.direction_for_b,
             "mode_collapse": self.mode_collapse,
-            "replay_per_A": self.replay_per_A,
-            "diagnosi_progresso": self.diagnosi_progresso,
+            "replay_for_a": self.replay_for_a,
+            "progress_diagnosis": self.progress_diagnosis,
         }
 
     def to_json(self) -> str:
@@ -58,12 +58,12 @@ class DirectorReport:
         return json.dumps(self.to_dict(), ensure_ascii=False, indent=2)
 
 
-def _esito(land_rate: float, success_rate: float) -> str:
+def _outcome(land_rate: float, success_rate: float) -> str:
     if land_rate >= success_rate:
-        return "successo"
+        return "success"
     if land_rate <= 0.0:
-        return "fallimento"
-    return "parziale"
+        return "failure"
+    return "partial"
 
 
 def _unseen_families(filled_keys: set[str]) -> list[str]:
@@ -97,7 +97,7 @@ class Director:
         cfg = self.config
         self._round += 1
 
-        classificazione = []
+        classification = []
         added, replaced = [], []
         novelties, cells_this_round, land_rates = [], [], []
 
@@ -105,11 +105,11 @@ class Director:
             cell = cell_of(r)
             nov = novelty_score(r, self.archive, self.embed_fn)
             lr = float(getattr(r, "land_rate", 0.0))
-            classificazione.append({
-                "attacco_id": getattr(r, "payload_id", ""),
-                "cella": cell.key,
-                "novita": round(nov, 3),
-                "esito": _esito(lr, cfg.success_rate),
+            classification.append({
+                "attack_id": getattr(r, "payload_id", ""),
+                "cell": cell.key,
+                "novelty": round(nov, 3),
+                "outcome": _outcome(lr, cfg.success_rate),
             })
             verdict = self.archive.update(r, quality=lr, novelty=nov, round=self._round)
             (added if verdict == "added" else replaced if verdict == "replaced" else []).append(cell.key)
@@ -122,12 +122,12 @@ class Director:
             return 0 if not filled else min(_key_distance(c.key, fk) for fk in filled)
 
         empties_sorted = sorted(self.archive.empty_cells(), key=frontier_dist)
-        celle_target = [c.key for c in empties_sorted[: cfg.target_cells]]
-        direzione = {
-            "celle_target": celle_target,
-            "famiglie_da_esplorare": _unseen_families(filled),
-            "motivo": "Riempi le celle vuote vicine alla frontiera; priorita alla "
-                      "copertura, non al successo grezzo.",
+        target_cells = [c.key for c in empties_sorted[: cfg.target_cells]]
+        direction = {
+            "target_cells": target_cells,
+            "families_to_explore": _unseen_families(filled),
+            "reason": "Fill empty cells near the frontier; prioritize coverage, "
+                      "not raw success.",
         }
 
         # (5) mode collapse
@@ -141,28 +141,28 @@ class Director:
             # jump AWAY: empty cell maximizing distance from this round's cells
             far = max(empties_sorted,
                       key=lambda c: min((_key_distance(c.key, k) for k in cells_this_round), default=4))
-            azione = f"Salto forzato verso regione lontana: {far.key}"
+            action = f"Forced jump to a distant region: {far.key}"
         elif collapsed:
-            azione = "Collasso rilevato ma nessuna cella libera; allargare gli assi."
+            action = "Collapse detected but no empty cell; widen the axes."
         else:
-            azione = "nessuna"
-        mode_collapse = {"rilevato": collapsed, "azione": azione}
+            action = "none"
+        mode_collapse = {"detected": collapsed, "action": action}
 
         # (6) replay — Hall of Fame: best-quality elites (one per cell already)
         hof = sorted(self.archive.elites(), key=lambda e: (e.quality, -e.round), reverse=True)
         replay = [e.attack_id for e in hof[: cfg.replay_max]]
 
         # (7) progress on the frozen benchmark
-        diagnosi = self._diagnose(benchmark_score, land_rates, added, replaced)
+        diagnosis = self._diagnose(benchmark_score, land_rates, added, replaced)
 
         return DirectorReport(
             round=self._round,
-            classificazione=classificazione,
-            archivio_update={"celle_aggiunte": added, "rappresentanti_sostituiti": replaced},
-            direzione_per_B=direzione,
+            classification=classification,
+            archive_update={"cells_added": added, "representatives_replaced": replaced},
+            direction_for_b=direction,
             mode_collapse=mode_collapse,
-            replay_per_A=replay,
-            diagnosi_progresso=diagnosi,
+            replay_for_a=replay,
+            progress_diagnosis=diagnosis,
         )
 
     def _diagnose(self, score: Optional[float], land_rates: list[float],
@@ -174,9 +174,9 @@ class Director:
         if score is None:
             return {
                 "benchmark_delta": None,
-                "progresso_reale": bool(added),  # no benchmark -> coverage growth as proxy
-                "note": f"benchmark non fornito; copertura {filled}/{total} celle, "
-                        f"{len(added)} nuove.",
+                "real_progress": bool(added),  # no benchmark -> coverage growth as proxy
+                "note": f"no benchmark provided; coverage {filled}/{total} cells, "
+                        f"{len(added)} new.",
             }
 
         prev = self._benchmarks[-1] if self._benchmarks else None
@@ -189,14 +189,14 @@ class Director:
         if stalled and mean_land > 0.5:
             return {
                 "benchmark_delta": delta,
-                "progresso_reale": False,
-                "note": f"Progresso illusorio: benchmark piatto da {cfg.stall_rounds} round "
-                        f"mentre B vince (land medio {mean_land:.2f}). Cambiare strategia di ricerca.",
+                "real_progress": False,
+                "note": f"Illusory progress: benchmark flat for {cfg.stall_rounds} rounds "
+                        f"while B keeps winning (mean land {mean_land:.2f}). Change search strategy.",
             }
         real = (delta is None) or delta > cfg.stall_eps or bool(added)
         return {
             "benchmark_delta": delta,
-            "progresso_reale": real,
-            "note": f"benchmark={score:.3f}, copertura {filled}/{total}, "
-                    f"{len(added)} nuove celle.",
+            "real_progress": real,
+            "note": f"benchmark={score:.3f}, coverage {filled}/{total}, "
+                    f"{len(added)} new cells.",
         }
