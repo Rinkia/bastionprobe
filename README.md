@@ -199,10 +199,18 @@ bastionprobe coevolve --defender agentbastion --rounds 6
 ```
 
 The last line is the point: the frozen benchmark (held out of hardening) tells
-real robustness gains from illusory ones. A bag-of-words embedder ships for a
-zero-dependency demo (`hashing_embedder`); swap in a sentence-transformer for real
-coverage. The `demo` defender (default) instead memorizes — a deliberately simple
-ceiling.
+real robustness gains from illusory ones. Two embedders ship: `hashing_embedder`
+(zero-dependency bag-of-words, the default) and `sentence_transformer_embedder`
+(real dense embeddings — generalizes across whole attack families, not just token
+overlap):
+
+```bash
+pip install "bastionprobe[embeddings]"
+bastionprobe coevolve --defender agentbastion --embedder sentence-transformer
+```
+
+The threshold auto-pairs (0.4 hashing, 0.6 dense; override with `--threshold`).
+The `demo` defender (default) instead memorizes — a deliberately simple ceiling.
 
 ## Close the loop: harden the shield
 

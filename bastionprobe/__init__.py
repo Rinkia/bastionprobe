@@ -14,7 +14,7 @@ from .coevo import Archive, Director, DirectorReport
 from .runner import AttackResult, run_attack, run_suite
 from .target import AgentResponse, Target, rate_limited
 
-__version__ = "0.14.0"
+__version__ = "0.15.0"
 
 __all__ = [
     "Payload",

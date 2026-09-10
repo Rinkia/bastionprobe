@@ -12,9 +12,41 @@ hardening visibly move the benchmark; swap in a real model for real coverage.
 from __future__ import annotations
 
 import hashlib
-from typing import Callable, Sequence
+from typing import Any, Callable, Optional, Sequence
 
 EmbedFn = Callable[[Sequence[str]], Sequence[Sequence[float]]]
+
+
+def sentence_transformer_embedder(
+    model_name: str = "all-MiniLM-L6-v2",
+    model: Optional[Any] = None,
+    normalize: bool = True,
+) -> EmbedFn:
+    """A real dense embedder via sentence-transformers. Generalizes across
+    paraphrases far better than the hashing bag-of-words, so A's hardening covers
+    whole attack families instead of only token-overlapping restatements.
+
+    `model` may be injected (a preloaded SentenceTransformer, or a stand-in for
+    tests); otherwise it is lazily loaded from `model_name` on first use — which
+    needs `pip install "bastionprobe[embeddings]"` and a one-time model download.
+
+    Pair it with a HIGHER SemanticDetector threshold (~0.6) than the BoW embedder
+    (~0.4): dense cosine similarities for genuine paraphrases sit much higher.
+    """
+    state: dict = {"model": model}
+
+    def _get() -> Any:
+        if state["model"] is None:
+            from sentence_transformers import SentenceTransformer  # optional dep
+
+            state["model"] = SentenceTransformer(model_name)
+        return state["model"]
+
+    def embed(texts: Sequence[str]) -> Sequence[Sequence[float]]:
+        vecs = _get().encode(list(texts), normalize_embeddings=normalize)
+        return [list(map(float, v)) for v in vecs]
+
+    return embed
 
 
 def hashing_embedder(dim: int = 256) -> EmbedFn:

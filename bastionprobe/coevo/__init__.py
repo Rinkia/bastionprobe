@@ -19,7 +19,7 @@ from .benchmark import (
 from .agentbastion import guard_to_block_fn, make_hardening_defender
 from .defender import make_guarded_target
 from .director import Director, DirectorConfig, DirectorReport
-from .embedders import hashing_embedder
+from .embedders import hashing_embedder, sentence_transformer_embedder
 from .generator import generate_batch, generate_one
 from .novelty import novelty_score
 from .orchestrator import CoevoConfig, memorizing_harden, run_coevolution
@@ -46,6 +46,7 @@ __all__ = [
     "CoevoConfig",
     "memorizing_harden",
     "hashing_embedder",
+    "sentence_transformer_embedder",
     "make_hardening_defender",
     "guard_to_block_fn",
 ]

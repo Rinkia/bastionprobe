@@ -106,6 +106,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     co.add_argument("--benchmark", type=Path, default=None,
                     help="frozen benchmark corpus.jsonl (held out of hardening)")
+    co.add_argument(
+        "--embedder", choices=["hashing", "sentence-transformer"], default="hashing",
+        help="hashing = zero-dep BoW; sentence-transformer = real dense embeddings "
+        "(needs bastionprobe[embeddings]). Only used with --defender agentbastion.",
+    )
+    co.add_argument("--threshold", type=float, default=None,
+                    help="semantic match threshold (default: 0.4 hashing, 0.6 sentence-transformer)")
 
     hd = sub.add_parser(
         "harden", help="turn landed findings into agentbastion defenses"
@@ -175,13 +182,20 @@ def main(argv: list[str] | None = None) -> int:
         frozen = load_corpus(args.benchmark) if args.benchmark else _DEMO_FROZEN
 
         if args.defender == "agentbastion":
+            from .coevo import (hashing_embedder, make_hardening_defender,
+                                sentence_transformer_embedder)
+            if args.embedder == "sentence-transformer":
+                try:
+                    embed = sentence_transformer_embedder()
+                    embed(["warmup"])  # force the lazy load now, fail fast if missing
+                except Exception as e:  # noqa: BLE001
+                    raise SystemExit(f'install bastionprobe[embeddings]: {e}')
+                threshold = args.threshold if args.threshold is not None else 0.6
+            else:
+                embed = hashing_embedder()
+                threshold = args.threshold if args.threshold is not None else 0.4
             try:
-                from .coevo import hashing_embedder, make_hardening_defender
-            except Exception as e:  # noqa: BLE001
-                raise SystemExit(f"agentbastion defender unavailable: {e}")
-            embed = hashing_embedder()
-            try:
-                defender, harden_fn = make_hardening_defender(embed)
+                defender, harden_fn = make_hardening_defender(embed, threshold=threshold)
             except ImportError:
                 raise SystemExit("install agentbastion to use --defender agentbastion")
             director = Director(embed_fn=embed)  # hybrid novelty with the same embedder
