@@ -5,10 +5,18 @@ Target so GPT models drop into the same suite and the same cross-model matrix.
 It reuses the exact demo agent (system prompt + tools) from anthropic_target, so
 a cross-vendor comparison measures the models, not two different harnesses.
 
-OpenAI's chat-completions tool-calling shape differs from Anthropic's, so this
-adapter translates: tools become `{"type":"function","function":{...}}`, the
-poisoned payload comes back as a `role:"tool"` message, and the response is read
-from `choices[0].message` (`.content` + `.tool_calls[].function.name`).
+Tools become `{"type":"function","function":{...}}`; the response is read from
+`choices[0].message` (`.content` + `.tool_calls[].function.name`).
+
+The poisoned payload is delivered as a labeled **user** message ("[Result from
+the read_document tool] ..."), not as a fabricated assistant tool-call + tool
+result. That replay works on OpenAI proper but strict providers reject a
+functionCall the model never issued — Gemini 3.x, reached through its OpenAI-
+compatible endpoint, demands a `thought_signature` on such parts. Injecting the
+retrieved content as a user turn is portable across every OpenAI-compatible
+provider and just as faithful: the injection still rides in the data the agent
+retrieved, and the tools are still offered so tool-call checks fire. (The native
+anthropic_target keeps the authentic tool_result replay.)
 
 Importing this module needs neither the OpenAI SDK nor a key — only calling the
 returned target does.
@@ -16,8 +24,6 @@ returned target does.
 
 from __future__ import annotations
 
-import json
-import secrets
 from typing import Any, Mapping
 
 from .anthropic_target import DEFAULT_SYSTEM, DEFAULT_TOOLS
@@ -60,28 +66,14 @@ def make_openai_target(
 
     def target(messages: list[dict], tool_outputs: Mapping[str, str]) -> AgentResponse:
         poisoned = tool_outputs.get(poisoned_tool, "")
-        tool_call_id = "call_" + secrets.token_hex(6)
 
-        # Replay the agent's own read: it already called read_document and got the
-        # (poisoned) content back. Now let the model take its next turn.
+        # Deliver the (poisoned) retrieved content as a labeled user turn. No
+        # fabricated assistant tool-call, so strict providers accept it; the
+        # tools below are still offered, so the model can act on the injection.
         convo: list[dict[str, Any]] = [{"role": "system", "content": system}]
         convo += list(messages)
         convo += [
-            {
-                "role": "assistant",
-                "content": None,
-                "tool_calls": [
-                    {
-                        "id": tool_call_id,
-                        "type": "function",
-                        "function": {
-                            "name": poisoned_tool,
-                            "arguments": json.dumps({"path": "document.txt"}),
-                        },
-                    }
-                ],
-            },
-            {"role": "tool", "tool_call_id": tool_call_id, "content": poisoned},
+            {"role": "user", "content": f"[Result from the {poisoned_tool} tool]\n{poisoned}"}
         ]
 
         resp = client.chat.completions.create(

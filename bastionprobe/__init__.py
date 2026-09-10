@@ -13,7 +13,7 @@ from .openai_target import make_openai_target
 from .runner import AttackResult, run_attack, run_suite
 from .target import AgentResponse, Target
 
-__version__ = "0.8.0"
+__version__ = "0.8.1"
 
 __all__ = [
     "Payload",

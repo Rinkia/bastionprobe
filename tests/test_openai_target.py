@@ -31,17 +31,20 @@ class FakeClient:
         self.chat = SimpleNamespace(completions=FakeCompletions(_resp(text, tool_names)))
 
 
-def test_adapter_delivers_payload_as_openai_tool_message():
+def test_adapter_delivers_payload_as_labeled_user_message():
     client = FakeClient(text="ok")
     target = make_openai_target(client, model="test")
     p = Payload(id="x", text="POISON {canary}", category="indirect_injection")
     result = run_attack(target, p)
     convo = client.chat.completions.last_kwargs["messages"]
     assert convo[0]["role"] == "system"
-    tool_msg = convo[-1]
-    assert tool_msg["role"] == "tool" and tool_msg["tool_call_id"].startswith("call_")
-    assert result.canary in tool_msg["content"]
-    # tools were translated to OpenAI function shape
+    # poisoned content delivered as a user turn (no fabricated tool-call), so
+    # strict providers (Gemini 3.x) accept it
+    last = convo[-1]
+    assert last["role"] == "user" and "read_document" in last["content"]
+    assert result.canary in last["content"]
+    assert not any(m.get("role") == "tool" for m in convo)
+    # tools still translated to OpenAI function shape and offered
     assert client.chat.completions.last_kwargs["tools"][0]["type"] == "function"
 
 
