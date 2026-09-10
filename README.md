@@ -184,10 +184,25 @@ progress goes illusory (benchmark stalls while B keeps winning):
 bastionprobe coevolve --rounds 5 --runs 2 --per-cell 2
 ```
 
-Everything is pluggable (defender = `block_fn(text)->bool`, generator, `harden_fn`),
-so agentbastion drops in as A via `make_guarded_target(lambda t: fw.is_blocked(fw.scan(t)))`.
-The default `harden_fn` memorizes what landed — a deliberately simple ceiling;
-real A hardens via the [`harden`](#close-the-loop-harden-the-shield) bridge.
+Everything is pluggable (defender = `block_fn(text)->bool`, generator, `harden_fn`).
+
+**Real A that hardens.** `--defender agentbastion` wires agentbastion in as A: it
+guards the poisoned tool result, and every round it ingests the attacks that
+landed as `SemanticDetector` templates — so it blocks them *and their paraphrases*
+next round. With a real embedder this is genuine hardening:
+
+```bash
+bastionprobe coevolve --defender agentbastion --rounds 6
+# round 1: benchmark=0.000   (base A catches none of the held-out attacks)
+# round 2: benchmark=0.800   (A hardened on what landed -> catches paraphrases)
+# round 4: real_progress=False (benchmark plateaus while B keeps winning)
+```
+
+The last line is the point: the frozen benchmark (held out of hardening) tells
+real robustness gains from illusory ones. A bag-of-words embedder ships for a
+zero-dependency demo (`hashing_embedder`); swap in a sentence-transformer for real
+coverage. The `demo` defender (default) instead memorizes — a deliberately simple
+ceiling.
 
 ## Close the loop: harden the shield
 

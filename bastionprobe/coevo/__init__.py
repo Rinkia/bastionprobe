@@ -16,8 +16,10 @@ from .benchmark import (
     frozen_contamination,
     load_corpus,
 )
+from .agentbastion import guard_to_block_fn, make_hardening_defender
 from .defender import make_guarded_target
 from .director import Director, DirectorConfig, DirectorReport
+from .embedders import hashing_embedder
 from .generator import generate_batch, generate_one
 from .novelty import novelty_score
 from .orchestrator import CoevoConfig, memorizing_harden, run_coevolution
@@ -43,4 +45,7 @@ __all__ = [
     "run_coevolution",
     "CoevoConfig",
     "memorizing_harden",
+    "hashing_embedder",
+    "make_hardening_defender",
+    "guard_to_block_fn",
 ]
