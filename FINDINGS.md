@@ -53,11 +53,15 @@ it — and *legitimate* framing (70%) works much better on it than overt framing
 - **gpt-oss:** egress obeyed, and obedience is **framing-sensitive** (legit 70% ≫
   overt 20%) — dressing exfiltration as routine business bypasses its weaker guard.
 
-**Confound (stated plainly):** Claude was tested via the `tool_result` vector,
-gpt-oss via the user-message vector (see the injection-vector caveat above). Part
-of the gap could be vector, not model. But the size of the gap (0% vs 70%, and
-0% vs 20% even for overt framing) is hard to attribute to vector alone. The clean
-confirmation — running both models through the *same* vector — is the next build.
+**Confound resolved (v0.9.0 controlled re-test).** The Claude matrix was re-run
+through the **same `user_message` vector** gpt-oss used. Claude egress stayed at
+**0% on every model, both tactics** (opus/sonnet/haiku, overt and legit). The
+0→70% gap is therefore the model, not the injection vector. On Claude the egress
+refusal is both framing-invariant *and* vector-invariant.
+
+(The vector does move *non-egress* tactics modestly — under `user_message`,
+sonnet's overall land rate fell 61%→45% and opus 10%→4%, so `tool_result` is the
+marginally stronger surface on the larger models. Egress stayed zero regardless.)
 
 **For defenders:** "the model will refuse to exfiltrate" is a Claude property you
 observed, not a law. On other models, and especially under plausible-sounding
@@ -125,10 +129,10 @@ Does the egress wall hold on other vendors? **No** — `gpt-oss-120b` exfiltrate
 (see the cross-vendor section). The Claude-specific egress refusal is a real
 differentiator, not an industry baseline.
 
-The next question is rigor: **re-run both models through the same injection
-vector** to remove the tool_result-vs-user-message confound, and add more
-vendors (a native Gemini target, a hosted GPT-4-class model) to the grid. If the
-0%→70% egress gap survives a same-vector test, it is a clean, strong result.
+The v0.9.0 same-vector re-test confirms the gap is the model, not the harness:
+Claude egress is 0% via both injection vectors, so the headline no longer rests
+on an untested assumption. Further vendors (a native Gemini target, a hosted
+GPT-4-class model) would extend the grid but are not needed to make the point.
 
 ## Reproduce
 
