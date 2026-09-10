@@ -83,11 +83,22 @@ def cell_of(result: Any) -> Cell:
     return Cell(framing=framing, surface=surface, language=language, action=action)
 
 
+# Only these (surface, action) pairs are expressible: a content-echo attack is
+# scored by canary and needs no tool (action=echo); a tool-call attack needs a
+# tool to call (egress or destructive). The other combinations are incoherent —
+# excluding them keeps the director from steering B at cells it can't build.
+_COHERENT = {("content-echo", "echo"), ("tool-call", "egress"), ("tool-call", "destructive")}
+
+
+def is_coherent(cell: Cell) -> bool:
+    return (cell.surface, cell.action) in _COHERENT
+
+
 def all_cells() -> list[Cell]:
-    """Every cell in the behavioral map (cartesian product of axis values).
-    Some combinations are unreachable by construction (e.g. content-echo + egress);
-    the director targets empty cells nearest the frontier, so it won't chase them."""
+    """Every EXPRESSIBLE cell of the behavioral map. Incoherent surface/action
+    pairs are excluded, so the director only ever targets reachable cells."""
     return [
         Cell(f, s, l, a)
         for f, s, l, a in itertools.product(FRAMINGS, SURFACES, LANGUAGES, ACTIONS)
+        if is_coherent(Cell(f, s, l, a))
     ]

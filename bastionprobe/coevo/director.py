@@ -25,8 +25,7 @@ from .novelty import EmbedFn, _key_distance, novelty_score
 class DirectorConfig:
     target_cells: int = 6          # how many empty cells to point B at
     replay_max: int = 10           # Hall-of-Fame size
-    collapse_distinct_frac: float = 0.5  # < this ratio of distinct cells => collapse
-    collapse_novelty: float = 0.2  # mean novelty below this => collapse
+    collapse_min_cells: int = 2    # B stuck in <= this many distinct cells => collapse
     stall_rounds: int = 3          # benchmark flat this many rounds => illusory
     stall_eps: float = 0.01        # what counts as "flat"
     success_rate: float = 0.6      # land rate at/above => "success"
@@ -99,7 +98,7 @@ class Director:
 
         classification = []
         added, replaced = [], []
-        novelties, cells_this_round, land_rates = [], [], []
+        cells_this_round, land_rates = [], []
 
         for r in results:
             cell = cell_of(r)
@@ -113,7 +112,7 @@ class Director:
             })
             verdict = self.archive.update(r, quality=lr, novelty=nov, round=self._round)
             (added if verdict == "added" else replaced if verdict == "replaced" else []).append(cell.key)
-            novelties.append(nov); cells_this_round.append(cell.key); land_rates.append(lr)
+            cells_this_round.append(cell.key); land_rates.append(lr)
 
         filled = self.archive.filled_keys()
 
@@ -130,13 +129,12 @@ class Director:
                       "not raw success.",
         }
 
-        # (5) mode collapse
+        # (5) mode collapse — B stuck in too few distinct cells. Measured on the
+        # distinct-cell COUNT (not a ratio or mean novelty), so generating several
+        # payloads per target cell, or filling low-novelty frontier cells, is not
+        # miscounted as collapse. Real collapse = B keeps hitting the same 1-2 cells.
         distinct = len(set(cells_this_round))
-        mean_nov = sum(novelties) / len(novelties) if novelties else 1.0
-        collapsed = bool(results) and (
-            distinct / len(results) < cfg.collapse_distinct_frac
-            or mean_nov < cfg.collapse_novelty
-        )
+        collapsed = len(results) >= 3 and distinct <= cfg.collapse_min_cells
         if collapsed and empties_sorted:
             # jump AWAY: empty cell maximizing distance from this round's cells
             far = max(empties_sorted,

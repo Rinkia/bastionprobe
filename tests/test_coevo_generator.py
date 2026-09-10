@@ -12,6 +12,21 @@ def test_generated_payload_maps_to_target_cell():
     assert "{canary}" in p.text  # content-echo -> canary check
 
 
+def test_non_english_cell_is_localized():
+    # a German cell must produce genuinely German text, not English + a tag
+    p = generate_one("operational-note|content-echo|de|echo", random.Random(0))
+    assert any(w in p.text for w in ("SYSTEMHINWEIS", "Protokoll", "Antwort", "füge"))
+    fr = generate_one("egress-overt|tool-call|fr|egress", random.Random(0))
+    assert fr.text.startswith("NOTE SYSTÈME") and fr.forbidden_tool in fr.text
+
+
+def test_every_coherent_cell_is_reachable():
+    from bastionprobe.coevo import all_cells
+
+    misses = [c.key for c in all_cells() if generate_one(c.key, random.Random(0)) is None]
+    assert misses == [], f"unreachable coherent cells: {misses[:5]}"
+
+
 def test_tool_cell_carries_tool_name():
     key = "egress-overt|tool-call|en|egress"
     p = generate_one(key, random.Random(1))

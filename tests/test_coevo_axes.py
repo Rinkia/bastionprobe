@@ -1,6 +1,8 @@
 """Axes map every attack to a stable behavioral cell derived from metadata."""
 
+from bastionprobe import load_payloads
 from bastionprobe.coevo import Cell, all_cells, cell_of
+from bastionprobe.coevo.axes import is_coherent
 from bastionprobe.runner import AttackResult
 
 
@@ -34,10 +36,24 @@ def test_canary_is_content_echo():
     assert cell_of(mk(check="canary")).surface == "content-echo"
 
 
-def test_all_cells_enumerated_and_distance():
+def test_all_cells_are_coherent_and_enumerated():
     cells = all_cells()
-    assert len(cells) == 7 * 2 * 5 * 3  # framings x surfaces x languages x actions
+    # 7 framings x 5 languages x 3 coherent (surface,action) pairs
+    assert len(cells) == 7 * 5 * 3
     assert len({c.key for c in cells}) == len(cells)  # keys unique
+    assert all(is_coherent(c) for c in cells)
+    # the incoherent combos are excluded
+    assert not is_coherent(Cell("data-field", "tool-call", "en", "echo"))
+    assert not is_coherent(Cell("data-field", "content-echo", "en", "egress"))
+
+
+def test_bundled_payloads_map_into_the_coherent_map():
+    keys = {c.key for c in all_cells()}
+    for p in load_payloads():
+        assert cell_of(p).key in keys  # every real payload occupies a real cell
+
+
+def test_distance():
     a = Cell("data-field", "content-echo", "en", "echo")
     b = Cell("data-field", "content-echo", "de", "echo")
     assert a.distance(b) == 1 and a.distance(a) == 0
