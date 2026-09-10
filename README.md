@@ -154,6 +154,29 @@ fair cross-vendor comparison, run the **same** vector on every model
 (`--vector user_message` for the CLI matrix, or the parity default in
 `cross_vendor.py`) — otherwise a difference could be the vector, not the model.
 
+## Co-evolution director (experimental — Phase 1)
+
+`bastionprobe.coevo` adds **C**, a research director for a red-team/blue-team
+co-evolution loop. It does not attack; it steers the *search*. Given a round of
+`AttackResult`s, `Director.round(...)` classifies each attack into a behavioral
+cell (framing × surface × language × action, derived from payload metadata),
+maintains a MAP-Elites quality-diversity archive (one best elite per cell),
+scores novelty (equal weight to success — so B is pushed toward *dissimilar*
+attacks, not just the boundary of A), steers B toward empty cells, flags mode
+collapse, picks a Hall-of-Fame replay set, and diagnoses real vs illusory
+progress. Deterministic and offline; the frozen-benchmark bridge, the
+A-as-defender target, the B generator, and the autonomous loop land in later
+phases.
+
+```python
+from bastionprobe import load_payloads, run_suite, Director
+from bastionprobe.demo import vulnerable_agent
+
+results = run_suite(vulnerable_agent, load_payloads(), runs=2)
+report = Director().round(results, benchmark_score=0.62)
+print(report.to_json())   # spec schema: classificazione, direzione_per_B, ...
+```
+
 ## Close the loop: harden the shield
 
 The sword's whole point is to make the shield better. `harden` turns landed

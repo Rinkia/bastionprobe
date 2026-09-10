@@ -10,10 +10,11 @@ from .corpus import Payload, load_payloads
 from .harden import build_hardening, write_hardening
 from .matrix import run_matrix, tactic_matrix
 from .openai_target import make_openai_target
+from .coevo import Archive, Director, DirectorReport
 from .runner import AttackResult, run_attack, run_suite
 from .target import AgentResponse, Target, rate_limited
 
-__version__ = "0.9.0"
+__version__ = "0.10.0"
 
 __all__ = [
     "Payload",
@@ -32,5 +33,8 @@ __all__ = [
     "GroupRate",
     "run_matrix",
     "tactic_matrix",
+    "Director",
+    "Archive",
+    "DirectorReport",
     "__version__",
 ]
