@@ -164,9 +164,7 @@ maintains a MAP-Elites quality-diversity archive (one best elite per cell),
 scores novelty (equal weight to success — so B is pushed toward *dissimilar*
 attacks, not just the boundary of A), steers B toward empty cells, flags mode
 collapse, picks a Hall-of-Fame replay set, and diagnoses real vs illusory
-progress. Deterministic and offline; the frozen-benchmark bridge, the
-A-as-defender target, the B generator, and the autonomous loop land in later
-phases.
+progress against a **frozen benchmark** A is never hardened against.
 
 ```python
 from bastionprobe import load_payloads, run_suite, Director
@@ -176,6 +174,20 @@ results = run_suite(vulnerable_agent, load_payloads(), runs=2)
 report = Director().round(results, benchmark_score=0.62)
 print(report.to_json())   # classification, direction_for_b, replay_for_a, ...
 ```
+
+**The full autonomous loop** — B generates toward the director's target cells,
+fires at A (a defender wrapped as a Target), C steers the next round, A hardens
+against what landed, A is re-scored on the frozen benchmark; it stops when
+progress goes illusory (benchmark stalls while B keeps winning):
+
+```bash
+bastionprobe coevolve --rounds 5 --runs 2 --per-cell 2
+```
+
+Everything is pluggable (defender = `block_fn(text)->bool`, generator, `harden_fn`),
+so agentbastion drops in as A via `make_guarded_target(lambda t: fw.is_blocked(fw.scan(t)))`.
+The default `harden_fn` memorizes what landed — a deliberately simple ceiling;
+real A hardens via the [`harden`](#close-the-loop-harden-the-shield) bridge.
 
 ## Close the loop: harden the shield
 

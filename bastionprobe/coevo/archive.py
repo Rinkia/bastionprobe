@@ -32,7 +32,13 @@ class Archive:
 
     def update(self, result: Any, quality: float, novelty: float, round: int) -> str:
         """Insert if the cell is empty, replace if strictly better (ties broken by
-        novelty), else reject. Returns "added" | "replaced" | "rejected"."""
+        novelty), else reject. Returns "added" | "replaced" | "rejected".
+
+        Only EFFECTIVE attacks are archived (quality > 0): the objective is
+        effective *and* diverse. A cell tried but never landed stays empty, so the
+        director keeps steering B there until something actually works."""
+        if quality <= 0.0:
+            return "rejected"
         key = cell_of(result).key
         elite = Elite(
             cell_key=key,

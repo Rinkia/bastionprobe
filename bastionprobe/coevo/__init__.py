@@ -16,8 +16,11 @@ from .benchmark import (
     frozen_contamination,
     load_corpus,
 )
+from .defender import make_guarded_target
 from .director import Director, DirectorConfig, DirectorReport
+from .generator import generate_batch, generate_one
 from .novelty import novelty_score
+from .orchestrator import CoevoConfig, memorizing_harden, run_coevolution
 
 __all__ = [
     "Cell",
@@ -34,4 +37,10 @@ __all__ = [
     "evaluate",
     "load_corpus",
     "frozen_contamination",
+    "make_guarded_target",
+    "generate_batch",
+    "generate_one",
+    "run_coevolution",
+    "CoevoConfig",
+    "memorizing_harden",
 ]
