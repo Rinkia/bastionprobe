@@ -59,9 +59,12 @@ def run_coevolution(
     director: Optional[Director] = None,
     harden_fn: HardenFn = memorizing_harden,
     inner: Optional[Target] = None,
+    generator: Callable[[list, int, int], list] = generate_batch,
     on_round: Optional[Callable[[int, DirectorReport], None]] = None,
 ) -> list[DirectorReport]:
-    """Run the loop. Returns one DirectorReport per round."""
+    """Run the loop. Returns one DirectorReport per round. `generator(target_cells,
+    per_cell, seed)` builds B's next round (default: template mutation; pass an
+    LLM generator for novel families)."""
     cfg = config or CoevoConfig()
     director = director or Director()
     history = BenchmarkHistory()
@@ -74,7 +77,7 @@ def run_coevolution(
         log.warning("frozen benchmark contaminated by %d seed payloads", len(contamination))
 
     for i in range(cfg.rounds):
-        payloads = seed_payloads if i == 0 else generate_batch(targets, cfg.per_cell, seed=i)
+        payloads = seed_payloads if i == 0 else generator(targets, cfg.per_cell, i)
         if not payloads:
             log.info("no payloads to explore at round %d; stopping", i + 1)
             break

@@ -212,6 +212,20 @@ bastionprobe coevolve --defender agentbastion --embedder sentence-transformer
 The threshold auto-pairs (0.4 hashing, 0.6 dense; override with `--threshold`).
 The `demo` defender (default) instead memorizes — a deliberately simple ceiling.
 
+**B that invents.** By default B recombines fixed axis fragments; `--generator llm`
+has a model write a fresh injection per target cell, so B reaches novel strategy
+families the templates can't express. We stamp the cell's axis metadata and
+enforce its scoring constraint (canary token / tool name), so `cell_of` still
+matches — the model supplies only the creative text.
+
+```bash
+bastionprobe coevolve --defender agentbastion --generator llm --gen-model claude-haiku-4-5
+```
+
+(For authorized testing: the generated strings are planted in the agent-under-
+test's own tool results to measure and harden its defenses — the same class of
+test string as the bundled payloads.)
+
 ## Close the loop: harden the shield
 
 The sword's whole point is to make the shield better. `harden` turns landed

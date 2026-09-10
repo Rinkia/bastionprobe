@@ -21,6 +21,7 @@ from .defender import make_guarded_target
 from .director import Director, DirectorConfig, DirectorReport
 from .embedders import hashing_embedder, sentence_transformer_embedder
 from .generator import generate_batch, generate_one
+from .llm_generator import anthropic_completer, make_llm_generator, openai_completer
 from .novelty import novelty_score
 from .orchestrator import CoevoConfig, memorizing_harden, run_coevolution
 
@@ -42,6 +43,9 @@ __all__ = [
     "make_guarded_target",
     "generate_batch",
     "generate_one",
+    "make_llm_generator",
+    "anthropic_completer",
+    "openai_completer",
     "run_coevolution",
     "CoevoConfig",
     "memorizing_harden",

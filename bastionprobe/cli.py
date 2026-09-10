@@ -113,6 +113,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     co.add_argument("--threshold", type=float, default=None,
                     help="semantic match threshold (default: 0.4 hashing, 0.6 sentence-transformer)")
+    co.add_argument(
+        "--generator", choices=["mutation", "llm"], default="mutation",
+        help="mutation = deterministic templates; llm = a model invents novel "
+        "attacks per cell (needs ANTHROPIC_API_KEY + bastionprobe[anthropic])",
+    )
+    co.add_argument("--gen-model", default="claude-haiku-4-5", help="model for --generator llm")
 
     hd = sub.add_parser(
         "harden", help="turn landed findings into agentbastion defenses"
@@ -212,10 +218,20 @@ def main(argv: list[str] | None = None) -> int:
                   f"benchmark_delta={pd['benchmark_delta']}  collapse={rep.mode_collapse['detected']}  "
                   f"real_progress={pd['real_progress']}", file=sys.stderr)
 
+        from .coevo import generate_batch
+        generator = generate_batch
+        if args.generator == "llm":
+            try:
+                from anthropic import Anthropic
+                from .coevo import anthropic_completer, make_llm_generator
+            except ImportError:
+                raise SystemExit('install bastionprobe[anthropic] for --generator llm')
+            generator = make_llm_generator(anthropic_completer(Anthropic(), model=args.gen_model))
+
         reports = run_coevolution(
             defender, frozen, load_payloads(),
             config=CoevoConfig(rounds=args.rounds, per_cell=args.per_cell, runs=args.runs),
-            director=director, harden_fn=harden_fn, on_round=_round,
+            director=director, harden_fn=harden_fn, generator=generator, on_round=_round,
         )
         print(reports[-1].to_json())
         return 0
