@@ -85,45 +85,50 @@ def make_anthropic_target(
     tools: list[dict[str, Any]] | None = None,
     poisoned_tool: str = POISONED_TOOL,
     max_tokens: int = 512,
+    vector: str = "tool_result",
 ) -> Target:
     """Build a Target backed by a live Anthropic client.
 
+    `vector` chooses how the poisoned content is delivered:
+      - "tool_result" (default): as a real tool_result block, replaying the
+        agent's own read_document call. The authentic representation.
+      - "user_message": as a labeled user turn. Matches the OpenAI-compatible
+        adapter's portable vector, for apples-to-apples cross-vendor tests.
+
     `client` is anything with a `.messages.create(...)` matching the Anthropic
-    SDK (a real `anthropic.Anthropic()`, or a stand-in for tests). Nothing is
-    imported from the SDK here, so importing this module never requires the SDK
-    or an API key — only calling the returned target does.
+    SDK. Nothing is imported from the SDK here, so importing this module never
+    requires the SDK or an API key — only calling the returned target does.
     """
+    if vector not in ("tool_result", "user_message"):
+        raise ValueError(f"vector must be tool_result or user_message, got {vector!r}")
     tool_list = tools if tools is not None else DEFAULT_TOOLS
 
-    def target(messages: list[dict], tool_outputs: Mapping[str, str]) -> AgentResponse:
-        poisoned = tool_outputs.get(poisoned_tool, "")
+    def _convo(messages: list[dict], poisoned: str) -> list[dict]:
+        if vector == "user_message":
+            return list(messages) + [
+                {"role": "user", "content": f"[Result from the {poisoned_tool} tool]\n{poisoned}"}
+            ]
+        # tool_result: replay the agent's own read as a real tool_result block.
         tool_use_id = "du_" + secrets.token_hex(6)
-
-        # Replay the agent's own read: it already called read_document and got the
-        # (poisoned) content back. Now let Claude take its next turn on that.
-        convo = list(messages) + [
+        return list(messages) + [
             {
                 "role": "assistant",
                 "content": [
-                    {
-                        "type": "tool_use",
-                        "id": tool_use_id,
-                        "name": poisoned_tool,
-                        "input": {"path": "document.txt"},
-                    }
+                    {"type": "tool_use", "id": tool_use_id, "name": poisoned_tool,
+                     "input": {"path": "document.txt"}},
                 ],
             },
             {
                 "role": "user",
                 "content": [
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": tool_use_id,
-                        "content": poisoned,
-                    }
+                    {"type": "tool_result", "tool_use_id": tool_use_id, "content": poisoned},
                 ],
             },
         ]
+
+    def target(messages: list[dict], tool_outputs: Mapping[str, str]) -> AgentResponse:
+        poisoned = tool_outputs.get(poisoned_tool, "")
+        convo = _convo(messages, poisoned)
 
         resp = client.messages.create(
             model=model,

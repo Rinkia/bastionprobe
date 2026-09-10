@@ -69,6 +69,13 @@ def main(argv: list[str] | None = None) -> int:
     mx.add_argument(
         "--category", default=None, help="only fire payloads whose category contains this"
     )
+    mx.add_argument(
+        "--vector",
+        choices=["tool_result", "user_message"],
+        default="tool_result",
+        help="how the payload is delivered (use user_message for parity with "
+        "OpenAI-compatible providers in a cross-vendor grid)",
+    )
 
     hd = sub.add_parser(
         "harden", help="turn landed findings into agentbastion defenses"
@@ -122,7 +129,7 @@ def main(argv: list[str] | None = None) -> int:
             payloads = [p for p in payloads if args.category in p.category]
         models = [m.strip() for m in args.models.split(",") if m.strip()]
         client = Anthropic()
-        targets = {m: make_anthropic_target(client, model=m) for m in models}
+        targets = {m: make_anthropic_target(client, model=m, vector=args.vector) for m in models}
 
         def _progress(model: str, i: int, total: int, r) -> None:
             rate = f"{r.landed_count}/{r.runs}" if r.runs > 1 else r.verdict

@@ -24,6 +24,10 @@ OPENAI_MODELS = ["gpt-4o", "gpt-4o-mini"]
 
 def main() -> int:
     runs = int(sys.argv[1]) if len(sys.argv) > 1 else 5
+    # Same vector on both sides removes the tool_result-vs-user_message confound.
+    # user_message is the only vector strict OpenAI-compatible providers accept,
+    # so it is the parity default. Override with the 2nd arg.
+    vector = sys.argv[2] if len(sys.argv) > 2 else "user_message"
     targets = {}
 
     if os.environ.get("ANTHROPIC_API_KEY"):
@@ -31,7 +35,7 @@ def main() -> int:
             from anthropic import Anthropic
 
             ac = Anthropic()
-            targets.update({m: make_anthropic_target(ac, model=m) for m in ANTHROPIC_MODELS})
+            targets.update({m: make_anthropic_target(ac, model=m, vector=vector) for m in ANTHROPIC_MODELS})
         except ImportError:
             print('anthropic SDK missing; pip install "bastionprobe[anthropic]"', file=sys.stderr)
 
@@ -40,7 +44,7 @@ def main() -> int:
             from openai import OpenAI
 
             oc = OpenAI()
-            targets.update({m: make_openai_target(oc, model=m) for m in OPENAI_MODELS})
+            targets.update({m: make_openai_target(oc, model=m, vector=vector) for m in OPENAI_MODELS})
         except ImportError:
             print('openai SDK missing; pip install "bastionprobe[openai]"', file=sys.stderr)
 

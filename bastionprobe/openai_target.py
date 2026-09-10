@@ -24,6 +24,8 @@ returned target does.
 
 from __future__ import annotations
 
+import json
+import secrets
 from typing import Any, Mapping
 
 from .anthropic_target import DEFAULT_SYSTEM, DEFAULT_TOOLS
@@ -57,24 +59,43 @@ def make_openai_target(
     tools: list[dict[str, Any]] | None = None,
     poisoned_tool: str = POISONED_TOOL,
     max_tokens: int = 512,
+    vector: str = "user_message",
 ) -> Target:
     """Build a Target backed by a live OpenAI client.
 
+    `vector` chooses how the poisoned content is delivered:
+      - "user_message" (default): as a labeled user turn. Portable across every
+        OpenAI-compatible provider, including strict ones (Gemini 3.x) that
+        reject a fabricated tool-call.
+      - "tool_result": as a real assistant tool-call + tool result. More
+        authentic, but only OpenAI-proper and lenient providers accept it. Use it
+        to match the native anthropic_target vector for apples-to-apples tests.
+
     `client` is anything with `.chat.completions.create(...)` matching the OpenAI
     SDK (a real `openai.OpenAI()`, or a stand-in for tests)."""
+    if vector not in ("tool_result", "user_message"):
+        raise ValueError(f"vector must be tool_result or user_message, got {vector!r}")
     tool_list = _to_openai_tools(tools if tools is not None else DEFAULT_TOOLS)
+
+    def _convo(messages: list[dict], poisoned: str) -> list[dict]:
+        base: list[dict[str, Any]] = [{"role": "system", "content": system}, *messages]
+        if vector == "user_message":
+            return base + [
+                {"role": "user", "content": f"[Result from the {poisoned_tool} tool]\n{poisoned}"}
+            ]
+        # tool_result: fabricate the prior tool-call + its result.
+        tcid = "call_" + secrets.token_hex(6)
+        return base + [
+            {"role": "assistant", "content": None, "tool_calls": [
+                {"id": tcid, "type": "function",
+                 "function": {"name": poisoned_tool, "arguments": json.dumps({"path": "document.txt"})}},
+            ]},
+            {"role": "tool", "tool_call_id": tcid, "content": poisoned},
+        ]
 
     def target(messages: list[dict], tool_outputs: Mapping[str, str]) -> AgentResponse:
         poisoned = tool_outputs.get(poisoned_tool, "")
-
-        # Deliver the (poisoned) retrieved content as a labeled user turn. No
-        # fabricated assistant tool-call, so strict providers accept it; the
-        # tools below are still offered, so the model can act on the injection.
-        convo: list[dict[str, Any]] = [{"role": "system", "content": system}]
-        convo += list(messages)
-        convo += [
-            {"role": "user", "content": f"[Result from the {poisoned_tool} tool]\n{poisoned}"}
-        ]
+        convo = _convo(messages, poisoned)
 
         resp = client.chat.completions.create(
             model=model,

@@ -147,6 +147,13 @@ ask whether a finding holds across vendors (does the egress refusal survive on
 GPT?). See [`examples/cross_model.py`](examples/cross_model.py) (Anthropic) and
 [`examples/cross_vendor.py`](examples/cross_vendor.py) (Anthropic + OpenAI).
 
+**Injection vector.** Both adapters take `vector=`: `tool_result` (a real
+tool-result block — authentic, native) or `user_message` (a labeled user turn —
+portable; strict providers like Gemini 3.x reject a fabricated tool-call). For a
+fair cross-vendor comparison, run the **same** vector on every model
+(`--vector user_message` for the CLI matrix, or the parity default in
+`cross_vendor.py`) — otherwise a difference could be the vector, not the model.
+
 ## Close the loop: harden the shield
 
 The sword's whole point is to make the shield better. `harden` turns landed
