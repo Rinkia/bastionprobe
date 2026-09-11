@@ -40,25 +40,40 @@ class Payload:
         return self.text.replace("{canary}", canary)
 
 
+def _payload_from_dict(d: dict) -> Payload:
+    if d.get("check") == "tool" and not d.get("forbidden_tool"):
+        raise ValueError(f"payload {d.get('id')!r}: check=tool needs forbidden_tool")
+    return Payload(
+        id=d["id"],
+        text=d["text"],
+        category=d.get("category", "indirect_injection"),
+        tactic=d.get("tactic", ""),
+        channel=d.get("channel", "tool_output"),
+        check=d.get("check", "canary"),
+        forbidden_tool=d.get("forbidden_tool"),
+        severity=int(d.get("severity", 3)),
+    )
+
+
+def _load_from_bastioncorpus() -> Optional[list[Payload]]:
+    """Fireable payloads from the shared trilogy corpus, or None if unavailable."""
+    try:
+        from bastioncorpus import load_corpus, to_probe
+    except Exception:  # noqa: BLE001 - fall back to the bundled snapshot
+        return None
+    return [_payload_from_dict(d) for d in to_probe(load_corpus())]
+
+
 def load_payloads(path: Path = _PAYLOADS_FILE) -> list[Payload]:
-    rows: list[Payload] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        d = json.loads(line)
-        if d.get("check") == "tool" and not d.get("forbidden_tool"):
-            raise ValueError(f"payload {d.get('id')!r}: check=tool needs forbidden_tool")
-        rows.append(
-            Payload(
-                id=d["id"],
-                text=d["text"],
-                category=d.get("category", "indirect_injection"),
-                tactic=d.get("tactic", ""),
-                channel=d.get("channel", "tool_output"),
-                check=d.get("check", "canary"),
-                forbidden_tool=d.get("forbidden_tool"),
-                severity=int(d.get("severity", 3)),
-            )
-        )
-    return rows
+    """Load attack payloads. With no explicit path, prefer bastioncorpus (the
+    shared source of truth) and fall back to the bundled payloads.jsonl. An
+    explicit path always reads that file."""
+    if path == _PAYLOADS_FILE:
+        rows = _load_from_bastioncorpus()
+        if rows is not None:
+            return rows
+    return [
+        _payload_from_dict(json.loads(line))
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]

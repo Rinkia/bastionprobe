@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bastionprobe"
-version = "0.16.0"
+version = "0.17.0"
 description = "Pentest for AI agents: fire indirect prompt-injection payloads at your agent and report which land. Offensive twin of agentbastion."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -18,7 +18,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: Security",
 ]
-dependencies = []
+dependencies = ["bastioncorpus>=0.2.0"]
 
 [project.optional-dependencies]
 anthropic = ["anthropic>=0.40"]
