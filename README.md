@@ -14,6 +14,11 @@ bastionprobe = Burp Suite for agents      (red team, pre-ship, on demand)
 agentbastion = WAF for agents           (blue team, production, always on)
 ```
 
+Part of the **bastion trilogy** — attack (bastionprobe), prevent
+([agentbastion](https://github.com/Rinkia/agentbastion)), investigate
+([bastiontrace](https://github.com/Rinkia/bastiontrace)) — all sharing one
+payload corpus, [bastioncorpus](https://github.com/Rinkia/bastioncorpus).
+
 ## The wedge: indirect prompt injection
 
 The hardest injection to defend and the one most agents are blind to: the
@@ -35,6 +40,11 @@ scores whether it obeyed:
 ```bash
 pip install bastionprobe
 ```
+
+`load_payloads()` sources its payloads from
+[bastioncorpus](https://github.com/Rinkia/bastioncorpus) (the shared trilogy
+corpus, pulled in as a dependency); a bundled `payloads.jsonl` snapshot is the
+fallback. Pass an explicit path to `load_payloads(path)` to fire your own set.
 
 ## Quick start
 
