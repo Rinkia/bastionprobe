@@ -329,31 +329,31 @@ Add-parser + `print(..., file=sys.stderr)` for per-round progress; JSON report t
 
 ### Static / imports
 ```bash
-cd C:/Projects/Varie/agentprobe && python -c "import bastionprobe.coevo as c; print(c.__all__)"
+cd C:/Projects/Varie/BastionDefense.dev/agentprobe && python -c "import bastionprobe.coevo as c; print(c.__all__)"
 ```
 EXPECT: exports present; importing needs no network/SDK/key.
 
 ### Unit tests
 ```bash
-cd C:/Projects/Varie/agentprobe && python -m pytest -q tests/test_coevo_*.py
+cd C:/Projects/Varie/BastionDefense.dev/agentprobe && python -m pytest -q tests/test_coevo_*.py
 ```
 EXPECT: all pass, no network.
 
 ### Full suite (no regressions)
 ```bash
-cd C:/Projects/Varie/agentprobe && python -m pytest -q
+cd C:/Projects/Varie/BastionDefense.dev/agentprobe && python -m pytest -q
 ```
 EXPECT: existing 31 + new coevo tests pass.
 
 ### Loop smoke (offline, agentbastion installed)
 ```bash
-cd C:/Projects/Varie/agentprobe && python -m bastionprobe.cli coevolve --rounds 2 --runs 2
+cd C:/Projects/Varie/BastionDefense.dev/agentprobe && python -m bastionprobe.cli coevolve --rounds 2 --runs 2
 ```
 EXPECT: two rounds run, DirectorReport JSON printed, archive fills at least one cell.
 
 ### Build
 ```bash
-cd C:/Projects/Varie/agentprobe && python -m build -q && python -m twine check dist/*
+cd C:/Projects/Varie/BastionDefense.dev/agentprobe && python -m build -q && python -m twine check dist/*
 ```
 EXPECT: PASSED; `coevo` package + any data files shipped.
 
