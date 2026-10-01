@@ -72,6 +72,14 @@ def main(argv: list[str] | None = None) -> int:
         help="fire each payload N times and report the land rate (models are "
         "non-deterministic; N>1 is the stable signal)",
     )
+    run.add_argument(
+        "--encode",
+        default=None,
+        metavar="NAMES",
+        help="also fire every payload encoded (comma list or 'all': base64, base64url, base32, "
+        "hex, binary, ascii85, base85, morse, percent, escape, tags, rot13, leet, reversed, "
+        "spaced) plus the corpus's own enc-* rows; multiplies the run, opt-in",
+    )
 
     mx = sub.add_parser(
         "matrix", help="fire the suite at several Anthropic models and compare"
@@ -120,6 +128,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     co.add_argument("--gen-model", default="claude-haiku-4-5", help="model for --generator llm")
 
+    eb = sub.add_parser(
+        "encoding-bench",
+        help="offline: how often local defenders catch each encoding (no model, no API key)",
+    )
+    eb.add_argument("--encodings", default="all", help="comma list or 'all' (default)")
+    eb.add_argument("--defenders", default="agentbastion,supply",
+                    help="comma list from: agentbastion, supply (uninstalled ones are skipped)")
+    eb.add_argument("--json", action="store_true", help="print JSON instead of the table")
+
     hd = sub.add_parser(
         "harden", help="turn landed findings into agentbastion defenses"
     )
@@ -133,11 +150,38 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
 
+    if args.cmd == "encoding-bench":
+        from .encode import parse_names
+        from .encoding_bench import format_bench, run_bench, to_json
+
+        try:
+            names = parse_names(args.encodings)
+        except ValueError as e:
+            raise SystemExit(f"bastionprobe: {e}")
+        wanted = tuple(d.strip() for d in args.defenders.split(",") if d.strip())
+        unknown = sorted(set(wanted) - {"agentbastion", "supply"})
+        if unknown:
+            raise SystemExit(f"bastionprobe: unknown defender(s) {unknown}; choose agentbastion, supply")
+        result = run_bench(names, wanted)
+        if not result.defenders:
+            raise SystemExit("bastionprobe: no defender installed; pip install agentbastion bastionsupply")
+        print(to_json(result) if args.json else format_bench(result))
+        return 0
+
     if args.cmd == "run":
         target = _load_target(args.target)
-        payloads = load_payloads()
+        payloads = load_payloads(include_encoded=bool(args.encode))
         if args.category:
             payloads = [p for p in payloads if args.category in p.category]
+        if args.encode:
+            from .encode import encoded_payloads, parse_names
+
+            try:
+                names = parse_names(args.encode)
+            except ValueError as e:
+                raise SystemExit(f"bastionprobe: {e}")
+            plain = [p for p in payloads if not p.tactic.startswith("enc-")]
+            payloads = plain + encoded_payloads(payloads, names)
         if not payloads:
             raise SystemExit("no payloads matched")
         if args.runs < 1:
