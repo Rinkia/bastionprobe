@@ -267,6 +267,10 @@ before any decode-and-rescan detector existed:
 - **Unencoded attacks:** 74% caught by agentbastion, 88% by bastionsupply.
 - **Encoded attacks:** 0 to 3%, whatever the encoding.
 
+Add `--defenders agentbastion,supply,supply+transforms` to measure the opt-in whole-text
+views (rot13, leet, reversed, spaced) that bastiongate and bastionmesh run with
+`decode_transforms: true` ([bench/TRANSFORMS-2026-10-02.md](bench/TRANSFORMS-2026-10-02.md)).
+
 Rerun it after changing a detector, and put both numbers in the changelog.
 
 ## Close the loop: harden the shield

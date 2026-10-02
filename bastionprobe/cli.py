@@ -134,7 +134,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     eb.add_argument("--encodings", default="all", help="comma list or 'all' (default)")
     eb.add_argument("--defenders", default="agentbastion,supply",
-                    help="comma list from: agentbastion, supply (uninstalled ones are skipped)")
+                    help="comma list from: agentbastion, supply, supply+transforms (uninstalled ones are skipped)")
     eb.add_argument("--json", action="store_true", help="print JSON instead of the table")
 
     hd = sub.add_parser(
@@ -152,16 +152,16 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "encoding-bench":
         from .encode import parse_names
-        from .encoding_bench import format_bench, run_bench, to_json
+        from .encoding_bench import DEFENDERS, format_bench, run_bench, to_json
 
         try:
             names = parse_names(args.encodings)
         except ValueError as e:
             raise SystemExit(f"bastionprobe: {e}")
         wanted = tuple(d.strip() for d in args.defenders.split(",") if d.strip())
-        unknown = sorted(set(wanted) - {"agentbastion", "supply"})
+        unknown = sorted(set(wanted) - set(DEFENDERS))
         if unknown:
-            raise SystemExit(f"bastionprobe: unknown defender(s) {unknown}; choose agentbastion, supply")
+            raise SystemExit(f"bastionprobe: unknown defender(s) {unknown}; choose {', '.join(DEFENDERS)}")
         result = run_bench(names, wanted)
         if not result.defenders:
             raise SystemExit("bastionprobe: no defender installed; pip install agentbastion bastionsupply")

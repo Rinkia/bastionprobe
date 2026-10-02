@@ -1,0 +1,349 @@
+{
+  "defenders": [
+    "supply",
+    "supply+transforms"
+  ],
+  "encodings": [
+    "plain",
+    "base64",
+    "base64url",
+    "base32",
+    "hex",
+    "binary",
+    "ascii85",
+    "base85",
+    "morse",
+    "percent",
+    "escape",
+    "tags",
+    "rot13",
+    "leet",
+    "reversed",
+    "spaced"
+  ],
+  "malicious": {
+    "supply/ascii85": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply/base32": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply/base64": {
+      "flagged": 89,
+      "shadow": 0,
+      "total": 101
+    },
+    "supply/base64url": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply/base85": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply/binary": {
+      "flagged": 90,
+      "shadow": 0,
+      "total": 102
+    },
+    "supply/escape": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply/hex": {
+      "flagged": 89,
+      "shadow": 0,
+      "total": 101
+    },
+    "supply/leet": {
+      "flagged": 1,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply/morse": {
+      "flagged": 39,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply/percent": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply/plain": {
+      "flagged": 87,
+      "shadow": 0,
+      "total": 99
+    },
+    "supply/reversed": {
+      "flagged": 1,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply/rot13": {
+      "flagged": 1,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply/spaced": {
+      "flagged": 1,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply/tags": {
+      "flagged": 100,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/ascii85": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/base32": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/base64": {
+      "flagged": 89,
+      "shadow": 0,
+      "total": 101
+    },
+    "supply+transforms/base64url": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/base85": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/binary": {
+      "flagged": 90,
+      "shadow": 0,
+      "total": 102
+    },
+    "supply+transforms/escape": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/hex": {
+      "flagged": 89,
+      "shadow": 0,
+      "total": 101
+    },
+    "supply+transforms/leet": {
+      "flagged": 76,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/morse": {
+      "flagged": 39,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/percent": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/plain": {
+      "flagged": 87,
+      "shadow": 0,
+      "total": 99
+    },
+    "supply+transforms/reversed": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/rot13": {
+      "flagged": 88,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/spaced": {
+      "flagged": 8,
+      "shadow": 0,
+      "total": 100
+    },
+    "supply+transforms/tags": {
+      "flagged": 100,
+      "shadow": 0,
+      "total": 100
+    }
+  },
+  "benign": {
+    "supply/ascii85": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply/base32": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply/base64": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 54
+    },
+    "supply/base64url": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply/base85": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply/binary": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply/escape": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply/hex": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 53
+    },
+    "supply/leet": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply/morse": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply/percent": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply/plain": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply/reversed": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply/rot13": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply/spaced": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply/tags": {
+      "flagged": 51,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply+transforms/ascii85": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply+transforms/base32": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply+transforms/base64": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 54
+    },
+    "supply+transforms/base64url": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply+transforms/base85": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply+transforms/binary": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply+transforms/escape": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply+transforms/hex": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 53
+    },
+    "supply+transforms/leet": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply+transforms/morse": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply+transforms/percent": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply+transforms/plain": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply+transforms/reversed": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply+transforms/rot13": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 52
+    },
+    "supply+transforms/spaced": {
+      "flagged": 0,
+      "shadow": 0,
+      "total": 51
+    },
+    "supply+transforms/tags": {
+      "flagged": 51,
+      "shadow": 0,
+      "total": 51
+    }
+  },
+  "skipped": {}
+}

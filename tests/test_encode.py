@@ -107,3 +107,14 @@ def test_bench_table_mentions_skipped_defender(monkeypatch, capsys):
     cli.main(["encoding-bench", "--encodings", "hex"])
     out = capsys.readouterr().out
     assert "skipped agentbastion" in out and "hex" in out
+
+
+def test_bench_transforms_defender_catches_rot13_without_benign_fp():
+    from bastionprobe.encoding_bench import run_bench
+
+    r = run_bench(("rot13", "reversed"), ("supply", "supply+transforms"))
+    if "supply+transforms" not in r.defenders:
+        pytest.skip(r.skipped.get("supply+transforms", "bastionsupply < 0.11"))
+    for enc in ("rot13", "reversed"):
+        assert r.malicious[("supply+transforms", enc)].rate() > r.malicious[("supply", enc)].rate() + 0.5
+        assert r.benign[("supply+transforms", enc)].flagged == 0

@@ -9,6 +9,8 @@ rate. The `plain` row is the unencoded baseline.
     agentbastion  InboundGuard blocks it (enforce) / a shadow detector would (shadow)
     supply        bastionsupply finds tool-poisoning, hidden-unicode or
                   encoded-injection in it (the scan bastiongate and bastionmesh reuse)
+    supply+transforms   the same, with the whole-text rot13 / leet / reversed /
+                  spaced views (gate `decode_transforms: true`); opt-in defender
 
 Run it before changing a detector (baseline) and after (evidence), and put both in
 the CHANGELOG.
@@ -22,6 +24,7 @@ from dataclasses import dataclass, field
 from .encode import NAMES, encode
 
 CANARY = "CANARY-0000"
+DEFENDERS = ("agentbastion", "supply", "supply+transforms")
 _SUPPLY_FLAGS = {"tool-poisoning", "hidden-unicode", "encoded-injection"}
 
 
@@ -72,6 +75,24 @@ def _defenders(wanted: tuple[str, ...]):
             found["supply"] = sup
         except Exception as e:  # noqa: BLE001
             skipped["supply"] = f"not installed ({type(e).__name__})"
+    if "supply+transforms" in wanted:
+        try:
+            from bastionsupply.checks import decoded_views, encoded_injection
+            from bastionsupply.models import Server, Tool
+            from bastionsupply.scanner import scan
+
+            decoded_views("x", transforms=True)  # bastionsupply < 0.11 has no transforms
+
+            def sup_t(text: str) -> tuple[bool, bool]:
+                report = scan(Server("bench", (Tool(name="bench", description=text),)))
+                if any(f.check in _SUPPLY_FLAGS for f in report.findings):
+                    return True, False
+                views = decoded_views(text, transforms=True)
+                return encoded_injection(text, "bench", views=views) is not None, False
+
+            found["supply+transforms"] = sup_t
+        except Exception as e:  # noqa: BLE001
+            skipped["supply+transforms"] = f"not available ({type(e).__name__})"
     return found, skipped
 
 
@@ -122,14 +143,16 @@ def format_bench(r: BenchResult) -> str:
              "  detection = malicious rows flagged (higher is better); "
              "FP = benign rows flagged (lower is better); "
              "+shadow = extra rows a shadow detector would block", ""]
-    head = f"  {'encoding':<11}" + "".join(f"{d + ' det':>18}{d + ' FP':>16}" for d in r.defenders)
+    widths = {d: (max(18, len(d) + 5), max(16, len(d) + 4)) for d in r.defenders}
+    head = f"  {'encoding':<11}" + "".join(
+        f"{d + ' det':>{widths[d][0]}}{d + ' FP':>{widths[d][1]}}" for d in r.defenders)
     lines.append(head)
     for enc in r.encodings:
         row = f"  {enc:<11}"
         for d in r.defenders:
             m, b = r.malicious.get((d, enc), Cell()), r.benign.get((d, enc), Cell())
             det = f"{m.rate():.0%}" + (f" +{m.shadow / m.total:.0%}" if m.shadow and m.total else "")
-            row += f"{det:>18}{b.rate():>16.0%}"
+            row += f"{det:>{widths[d][0]}}{b.rate():>{widths[d][1]}.0%}"
         lines.append(row)
     for d, why in r.skipped.items():
         lines.append(f"  (skipped {d}: {why})")

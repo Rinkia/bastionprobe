@@ -2,6 +2,9 @@
 
 ## 0.19.0 (unreleased)
 
+- `encoding-bench --defenders supply+transforms`: bastionsupply's scan plus the whole-text
+  rot13 / leet / reversed / spaced views (gate and mesh `decode_transforms`). Results in
+  `bench/TRANSFORMS-2026-10-02.md`: rot13 88%, leet 76%, reversed 88%, spaced 8%, 0% benign FP.
 - **`encoding-bench`**: offline (no model, no API key), deterministic. For each encoding,
   the share of corpus attacks (and of benign rows) that agentbastion and bastionsupply flag.
   The baseline in `bench/BASELINE-2026-10-01.md` was taken before any decode-and-rescan
