@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.19.0 (unreleased)
+## 0.19.0 (2026-10-05)
 
 - `encoding-bench --defenders supply+transforms`: bastionsupply's scan plus the whole-text
   rot13 / leet / reversed / spaced views (gate and mesh `decode_transforms`). Results in
