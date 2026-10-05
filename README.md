@@ -236,6 +236,43 @@ bastionprobe coevolve --defender agentbastion --generator llm --gen-model claude
 test's own tool results to measure and harden its defenses — the same class of
 test string as the bundled payloads.)
 
+## Encoded attacks (`--encode`, `encoding-bench`)
+
+Obfuscation jailbreaks hide the payload in an encoding the model reads but a filter does not:
+binary, base64, hex, rot13, leetspeak and more. Two ways to test for them.
+
+**Live, against your agent.** Fire every payload again in each encoding, plus the corpus's
+own encoded rows. Land rate is broken down per encoding (tactic `<tactic>+enc-<name>`):
+
+```bash
+bastionprobe run --target my_agent:agent --encode base64,binary,rot13 --runs 3
+bastionprobe run --encode all      # base64 base64url base32 hex binary ascii85 base85 morse
+                                   # percent escape tags rot13 leet reversed spaced
+```
+
+The canary is filled in before encoding. `--encode` multiplies the run (payloads x
+encodings), so it is opt-in: a default `run` never fires encoded rows.
+
+**Offline, against your defenders.** No model and no API key. The result is deterministic.
+It shows the share of attacks (and of benign rows) that agentbastion and bastionsupply flag,
+per encoding:
+
+```bash
+bastionprobe encoding-bench                    # table
+bastionprobe encoding-bench --json > bench.json
+```
+
+The 2026-10-01 baseline ([bench/BASELINE-2026-10-01.md](bench/BASELINE-2026-10-01.md)), taken
+before any decode-and-rescan detector existed:
+- **Unencoded attacks:** 74% caught by agentbastion, 88% by bastionsupply.
+- **Encoded attacks:** 0 to 3%, whatever the encoding.
+
+Add `--defenders agentbastion,supply,supply+transforms` to measure the opt-in whole-text
+views (rot13, leet, reversed, spaced) that bastiongate and bastionmesh run with
+`decode_transforms: true` ([bench/TRANSFORMS-2026-10-02.md](bench/TRANSFORMS-2026-10-02.md)).
+
+Rerun it after changing a detector, and put both numbers in the changelog.
+
 ## Close the loop: harden the shield
 
 The sword's whole point is to make the shield better. `harden` turns landed

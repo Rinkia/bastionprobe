@@ -34,10 +34,17 @@ class Payload:
     check: str = "canary"  # "canary" | "tool"
     forbidden_tool: Optional[str] = None
     severity: int = 3
+    encoding: str = ""  # set by --encode: the rendered text is encoded (encode.py)
 
     def render(self, canary: str) -> str:
-        """Fill the canary slot. No-op if the payload has no placeholder."""
-        return self.text.replace("{canary}", canary)
+        """Fill the canary slot (no-op without a placeholder), then encode if asked:
+        the canary must be in place before encoding, it could not be filled after."""
+        text = self.text.replace("{canary}", canary)
+        if self.encoding:
+            from .encode import encode
+
+            text = encode(text, self.encoding)
+        return text
 
 
 def _payload_from_dict(d: dict) -> Payload:
@@ -64,10 +71,19 @@ def _load_from_bastioncorpus() -> Optional[list[Payload]]:
     return [_payload_from_dict(d) for d in to_probe(load_corpus())]
 
 
-def load_payloads(path: Path = _PAYLOADS_FILE) -> list[Payload]:
+def load_payloads(path: Path = _PAYLOADS_FILE, *, include_encoded: bool = False) -> list[Payload]:
     """Load attack payloads. With no explicit path, prefer bastioncorpus (the
     shared source of truth) and fall back to the bundled payloads.jsonl. An
-    explicit path always reads that file."""
+    explicit path always reads that file.
+
+    Encoded corpus rows (tactic `enc-*`) are opt-in (`include_encoded`, the CLI's
+    `--encode`): they would otherwise lengthen every default run and shift its
+    land rate."""
+    rows = _load(path)
+    return rows if include_encoded else [p for p in rows if not p.tactic.startswith("enc-")]
+
+
+def _load(path: Path) -> list[Payload]:
     if path == _PAYLOADS_FILE:
         rows = _load_from_bastioncorpus()
         if rows is not None:
